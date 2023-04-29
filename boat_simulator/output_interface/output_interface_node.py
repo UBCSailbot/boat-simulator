@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy
+from boat_simulator.constants import *
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -8,7 +9,7 @@ from std_msgs.msg import String
 class OutputInterfaceNode(Node):
     def __init__(self):
         super().__init__('my_node')
-        self.publisher_ = self.create_publisher(String, 'my_topic', 10)
+        self.publisher_ = self.create_publisher(String, 'output_interface_out', 10)
         self.timer_ = self.create_timer(1.0, self.timer_callback)
         self.counter_ = 0
 

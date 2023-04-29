@@ -4,4 +4,4 @@ launch:
     pkg: "boat_simulator"
     exec: "physics_engine_node"
     name: "physics_engine_sim"
-    namespace: "boat_simulator1"
+    namespace: "boat_simulator"
