@@ -7,7 +7,7 @@ package_name = 'boat_simulator'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=["test"]),
+    packages=find_packages(exclude=["tests"]),
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         (join('share', package_name), glob('launch/*launch.[pxy][yma]*')),
