@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import rclpy
-from boat_simulator.constants import *
+from boat_simulator.common.constants import *
 from rclpy.node import Node
 from std_msgs.msg import String
 
 
-class PhysicsEngineNode(Node):
+class OutputInterfaceNode(Node):
     def __init__(self):
         super().__init__('my_node')
-        self.publisher_ = self.create_publisher(String, 'physics_engine_out', 10)
+        self.publisher_ = self.create_publisher(String, 'output_interface_out', 10)
         self.timer_ = self.create_timer(1.0, self.timer_callback)
         self.counter_ = 0
 
@@ -22,7 +22,7 @@ class PhysicsEngineNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = PhysicsEngineNode()
+    node = OutputInterfaceNode()
     rclpy.spin(node)
     rclpy.shutdown()
 

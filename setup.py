@@ -22,8 +22,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'physics_engine_node = boat_simulator.physics_engine.physics_engine_node:main',
-            'output_interface_node = boat_simulator.output_interface.output_interface_node:main'
+            'physics_engine_node = boat_simulator.nodes.physics_engine.physics_engine_node:main',
+            'output_interface_node = boat_simulator.nodes.output_interface.output_interface_node:main'
         ],
     },
 )
