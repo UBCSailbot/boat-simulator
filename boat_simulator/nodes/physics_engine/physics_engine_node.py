@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import rclpy
-from boat_simulator.common.constants import *
 from rclpy.node import Node
 from std_msgs.msg import String
 
