@@ -1,0 +1,9 @@
+launch:
+
+# Launch the Physics Engine Node
+- include:
+    file: "$(find-pkg-share boat_simulator)/physics_engine_launch.yaml"
+
+# Launch the Output Interface Node
+- include:
+    file: "$(find-pkg-share boat_simulator)/output_interface_launch.yaml"
