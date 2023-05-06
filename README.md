@@ -16,7 +16,7 @@ The [`launch/`](./launch/) folder contains [ROS 2 launch files](https://docs.ros
 that each run their own node(s). Run a launch file with:
 
 ``` shell
-ros2 launch boat_simulator "LAUNCH FILE NAME"
+ros2 launch boat_simulator LAUNCH_FILE_NAME
 ```
 
 ## Test
