@@ -30,7 +30,5 @@ jobs:
       rebuild-docs: false
       # Languages the repository uses
       uses-python: true
-      uses-cpp: false
-      uses-js: false
     secrets:
       gh-token: ${{ secrets.PAT_TOKEN }}
