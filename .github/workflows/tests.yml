@@ -28,3 +28,5 @@ jobs:
       # Rebuilds our docs site https://ubcsailbot.github.io/docs/
       # If the docs contains a snippet of a file in this repository, set to true
       rebuild-docs: false
+    secrets:
+      envPAT: ${{ secrets.PAT_TOKEN }}
