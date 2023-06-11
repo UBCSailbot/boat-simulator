@@ -14,19 +14,20 @@ concurrency:
 
 jobs:
   # CI for all UBCSailbot repositories defined in one place
-  # https://github.com/UBCSailbot/sailbot_workspace/blob/main/.github/workflows/test_definitions.yml
+  # Runs another workflow: https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   test-definitions:
-    # Runs another workflow, refer to
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@user/dfriend01/add_lang_ci_args
+    # sailbot_workspace: use locally-defined file
+    # other repositories: set to UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@<release>
+    uses: UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@v1.2.0
+    # see https://github.com/UBCSailbot/sailbot_workspace/blob/main/.github/workflows/test_definitions.yml
+    # for documentation on the inputs and secrets below
     with:
       repository: ${{ github.event.repository.name }}
-      # VCS is used to clone all subteam repositories, so set to
-      # true in subteam repositories and
-      # false in sailbot_workspace
-      disable-vcs: true
-      # Rebuilds our docs site https://ubcsailbot.github.io/docs/
-      # If the docs contains a snippet of a file in this repository, set to true
-      rebuild-docs: false
+      ros-ci: true
+      clang-tidy: false
+      rebuild-docs: true
+    # If rebuild-docs is true:
+    # 1. Create the repository secret PAT_TOKEN (copy from Bitwarden)
+    # 2. Uncomment the 2 lines below
     secrets:
       gh-token: ${{ secrets.PAT_TOKEN }}
