@@ -32,7 +32,7 @@ setup(
     maintainer='Devon Friend',
     maintainer_email='software@ubcsailbot.org',
     description='UBC Sailbot\'s Boat Simulator',
-    license='Apache License 2.0',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
