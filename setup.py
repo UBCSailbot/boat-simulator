@@ -30,7 +30,7 @@ setup(
     ],
     zip_safe=True,
     maintainer='Devon Friend',
-    maintainer_email='devon.friend45@gmail.com',
+    maintainer_email='software@ubcsailbot.org',
     description='UBC Sailbot\'s Boat Simulator',
     license='Apache License 2.0',
     tests_require=['pytest'],
@@ -38,9 +38,6 @@ setup(
         'console_scripts': [
             'physics_engine_node = ' +
             'boat_simulator.nodes.physics_engine.physics_engine_node:main',
-
-            'output_interface_node = ' +
-            'boat_simulator.nodes.output_interface.output_interface_node:main'
         ],
     },
 )

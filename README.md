@@ -1,5 +1,7 @@
 # UBC Sailbot Boat Simulator
 
+[![Tests](https://github.com/UBCSailbot/boat_simulator/actions/workflows/tests.yml/badge.svg)](https://github.com/UBCSailbot/boat_simulator/actions/workflows/tests.yml)
+
 UBC Sailbot's boat simulator for the new project. This repository contains a
 ROS package `boat_simulator`.
 

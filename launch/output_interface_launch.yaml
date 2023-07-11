@@ -1,7 +1,0 @@
-launch:
-
-- node:
-    pkg: "boat_simulator"
-    exec: "output_interface_node"
-    name: "output_interface_sim"
-    namespace: "boat_simulator"
