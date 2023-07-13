@@ -1,6 +1,6 @@
 # Source: https://docs.ros.org/en/humble/Tutorials/Intermediate/Launch/Creating-Launch-Files.html
+from launch_ros.actions import Node
 from launch import LaunchDescription
-from launch.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
