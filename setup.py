@@ -20,7 +20,7 @@ setup(
             ['resource/' + PACKAGE_NAME]
         ),
         (
-            join('share', PACKAGE_NAME),
+            join('share', PACKAGE_NAME, 'launch'),
             glob('launch/*launch.[pxy][yma]*')
         ),
         (
