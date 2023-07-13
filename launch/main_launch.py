@@ -1,19 +1,16 @@
-# Reference: https://docs.ros.org/en/humble/How-To-Guides/Launch-file-different-formats.html
-import os
-from ament_index_python import get_package_share_directory
+# Source: https://docs.ros.org/en/humble/Tutorials/Intermediate/Launch/Creating-Launch-Files.html
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import Node
+
 
 def generate_launch_description() -> LaunchDescription:
-    physics_engine_launch_include = generate_physics_engine_launch_include()
-    launch_description = LaunchDescription([physics_engine_launch_include])
-    return launch_description
+    # TODO: Add global config
 
-def generate_physics_engine_launch_include() -> IncludeLaunchDescription:
-    launch_file_path = os.path.join(
-        get_package_share_directory('boat_simulator'),
-        'physics_engine_launch.py'
-    )
-    launch_include = IncludeLaunchDescription(PythonLaunchDescriptionSource(launch_file_path))
-    return launch_include
+    physics_engine_node = Node(
+            package='boat_simulator',
+            namespace='boat_simulator',
+            executable='physics_engine_node',
+            name='physics_engine_node'
+        )
+    launch_description = LaunchDescription([physics_engine_node])
+    return launch_description
