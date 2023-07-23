@@ -1,3 +1,3 @@
 from typing import Union
 
-Number = Union[int, float]
+Scalar = Union[int, float]

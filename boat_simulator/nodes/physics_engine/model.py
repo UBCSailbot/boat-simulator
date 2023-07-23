@@ -1,4 +1,4 @@
-from boat_simulator.common.types import Number
+from boat_simulator.common.types import Scalar
 from typing import Tuple
 from numpy.typing import ArrayLike
 import numpy as np
@@ -18,7 +18,7 @@ class BoatState:
     __boat_mass = 1.0
     __timestep = 1.0
 
-    def __init__(self, timestep: Number, mass: Number, inertia: ArrayLike):
+    def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
         pass
 
     def step(self, wind_vel: ArrayLike):
@@ -33,7 +33,7 @@ class BoatState:
     def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_relative_acceleration(self, mass: Number,
+    def __compute_next_relative_acceleration(self, mass: Scalar,
                                              net_force: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
@@ -83,18 +83,18 @@ class BoatState:
         return self.__inertia
 
     @property
-    def boat_mass(self) -> Number:
+    def boat_mass(self) -> Scalar:
         return self.__boat_mass
 
     @property
-    def timestep(self) -> Number:
+    def timestep(self) -> Scalar:
         return self.__timestep
 
     @property
-    def speed(self) -> Number:
+    def speed(self) -> Scalar:
         return np.linalg.norm(x=self.relative_velocity, ord=2)
 
     @property
-    def true_bearing(self) -> Number:
+    def true_bearing(self) -> Scalar:
         # TODO: Implement this function
         return 0
