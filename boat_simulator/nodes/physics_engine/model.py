@@ -1,5 +1,6 @@
 from boat_simulator.common.types import Number
 from typing import Tuple
+from numpy.typing import ArrayLike
 import numpy as np
 import boat_simulator.common.constants as constants
 
@@ -17,66 +18,68 @@ class BoatState:
     __boat_mass = 1.0
     __timestep = 1.0
 
-    def __init__(self, timestep: Number, mass: Number, inertia: np.array):
+    def __init__(self, timestep: Number, mass: Number, inertia: ArrayLike):
         pass
 
-    def step(self, wind_velocity: np.array):
+    def step(self, wind_vel: ArrayLike):
         pass
 
-    def __compute_net_force_and_torque(self, wind_velocity: np.array) -> Tuple[np.array, np.array]:
+    def __compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         raise NotImplementedError()
 
-    def __compute_next_position(self, pos: np.array, vel: np.array, acc: np.array) -> np.array:
+    def __compute_next_position(self, pos: ArrayLike, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_relative_velocity(self, vel: np.array, acc: np.array) -> np.array:
+    def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_relative_acceleration(self, mass: Number, net_force: np.array) -> np.array:
+    def __compute_next_relative_acceleration(self, mass: Number,
+                                             net_force: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_ang_velocity(self, ang_vel: np.array, ang_acc: np.array) -> np.array:
+    def __compute_next_ang_velocity(self, ang_vel: ArrayLike, ang_acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_ang_acceleration(self, inertia: np.array, net_torque: np.array) -> np.array:
+    def __compute_next_ang_acceleration(self, inertia: ArrayLike,
+                                        net_torque: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
     @property
-    def global_position(self) -> np.array:
+    def global_position(self) -> ArrayLike:
         return self.__global_position
 
     @property
-    def global_velocity(self) -> np.array:
+    def global_velocity(self) -> ArrayLike:
         yaw_radians = self.__angular_position(constants.ORIENTATION_INDICES.YAW.value)
         return self.relative_velocity * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property
-    def global_acceleration(self) -> np.array:
+    def global_acceleration(self) -> ArrayLike:
         yaw_radians = self.__angular_position(constants.ORIENTATION_INDICES.YAW.value)
         return self.relative_acceleration * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property
-    def relative_velocity(self) -> np.array:
+    def relative_velocity(self) -> ArrayLike:
         return self.__relative_velocity
 
     @property
-    def relative_acceleration(self) -> np.array:
+    def relative_acceleration(self) -> ArrayLike:
         return self.__relative_acceleration
 
     @property
-    def angular_position(self) -> np.array:
+    def angular_position(self) -> ArrayLike:
         return self.__angular_position
 
     @property
-    def angular_velocity(self) -> np.array:
+    def angular_velocity(self) -> ArrayLike:
         return self.__angular_velocity
 
     @property
-    def angular_acceleration(self) -> np.array:
+    def angular_acceleration(self) -> ArrayLike:
         return self.__angular_acceleration
 
     @property
-    def inertia(self) -> np.array:
+    def inertia(self) -> ArrayLike:
         return self.__inertia
 
     @property
@@ -93,4 +96,5 @@ class BoatState:
 
     @property
     def true_bearing(self) -> Number:
-        raise NotImplementedError()
+        # TODO: Implement this function
+        return 0
