@@ -1,3 +1,5 @@
+"""Constants used across the boat simulator package."""
+
 from enum import Enum
 
 
