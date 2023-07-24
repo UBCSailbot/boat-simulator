@@ -1,3 +1,4 @@
+from boat_simulator.common import utils
 from boat_simulator.common.types import Scalar
 from typing import Tuple
 from numpy.typing import ArrayLike
@@ -50,12 +51,14 @@ class BoatState:
 
     @property
     def global_velocity(self) -> ArrayLike:
-        yaw_radians = self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
+        yaw_radians = utils.degrees_to_rad(
+            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value])
         return self.relative_velocity * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property
     def global_acceleration(self) -> ArrayLike:
-        yaw_radians = self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
+        yaw_radians = utils.degrees_to_rad(
+            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value])
         return self.relative_acceleration * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property
