@@ -21,7 +21,7 @@ class BoatState:
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
         pass
 
-    def step(self, wind_vel: ArrayLike):
+    def step(self, wind_vel: ArrayLike) -> None:
         pass
 
     def __compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:

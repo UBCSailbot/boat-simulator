@@ -19,12 +19,12 @@ class PID(ABC):
     """
 
     # Private class member defaults
-    __kp = 0
-    __ki = 0
-    __kd = 0
-    __time_period = 1
-    __buf_size = 50
-    __error_timeseries = list()
+    __kp: Scalar = 0
+    __ki: Scalar = 0
+    __kd: Scalar = 0
+    __time_period: Scalar = 1
+    __buf_size: int = 50
+    __error_timeseries: List[Scalar] = list()
 
     def __init__(self, kp: Scalar, ki: Scalar, kd: Scalar, time_period: Scalar, buf_size: int):
         """Initializes the class attributes. Note that this class cannot be directly instantiated.
@@ -55,7 +55,7 @@ class PID(ABC):
         """
         raise NotImplementedError()
 
-    def reset(self, is_latest_error_kept: bool = False):
+    def reset(self, is_latest_error_kept: bool = False) -> None:
         """Empties the error timeseries of the PID controller, effectively starting a new
         control iteration.
 
@@ -66,7 +66,7 @@ class PID(ABC):
         """
         raise NotImplementedError()
 
-    def __append_error(self, error: Scalar):
+    def __append_error(self, error: Scalar) -> None:
         """Appends the latest error to the error timeseries attribute. If the timeseries is at
         the maximum buffer size, the least recently computed error is evicted from the timeseries
         and the new one is appended.
