@@ -3,14 +3,12 @@ from numpy.typing import ArrayLike
 
 
 class FluidGenerator(ABC):
-
     @abstractmethod
     def next(self) -> ArrayLike:
         pass
 
 
 class WindGenerator(FluidGenerator):
-
     def __init__(self):
         super().__init__()
 

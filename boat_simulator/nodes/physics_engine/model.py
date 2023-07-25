@@ -7,7 +7,6 @@ import boat_simulator.common.constants as constants
 
 
 class BoatState:
-
     # Private class member defaults
     __global_position = np.zeros(shape=(3,), dtype=np.float32)
     __relative_velocity = np.zeros(shape=(3,), dtype=np.float32)
@@ -34,15 +33,17 @@ class BoatState:
     def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_relative_acceleration(self, mass: Scalar,
-                                             net_force: ArrayLike) -> ArrayLike:
+    def __compute_next_relative_acceleration(
+        self, mass: Scalar, net_force: ArrayLike
+    ) -> ArrayLike:
         raise NotImplementedError()
 
     def __compute_next_ang_velocity(self, ang_vel: ArrayLike, ang_acc: ArrayLike) -> ArrayLike:
         raise NotImplementedError()
 
-    def __compute_next_ang_acceleration(self, inertia: ArrayLike,
-                                        net_torque: ArrayLike) -> ArrayLike:
+    def __compute_next_ang_acceleration(
+        self, inertia: ArrayLike, net_torque: ArrayLike
+    ) -> ArrayLike:
         raise NotImplementedError()
 
     @property
@@ -52,13 +53,15 @@ class BoatState:
     @property
     def global_velocity(self) -> ArrayLike:
         yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value])
+            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
+        )
         return self.relative_velocity * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property
     def global_acceleration(self) -> ArrayLike:
         yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value])
+            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
+        )
         return self.relative_acceleration * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
 
     @property

@@ -83,7 +83,7 @@ class ConversionFactor:
 
     @property
     def inverse_factor(self) -> Scalar:
-        return 1/self.factor
+        return 1 / self.factor
 
 
 class ConversionFactors(Enum):
@@ -97,8 +97,9 @@ class ConversionFactors(Enum):
 
         Attributes in this class must follow the above naming convention.
     """
-    sec2min = ConversionFactor(factor=1/60)
-    sec2hr = sec2min * ConversionFactor(factor=1/60)
+
+    sec2min = ConversionFactor(factor=1 / 60)
+    sec2hr = sec2min * ConversionFactor(factor=1 / 60)
     min2sec = sec2min.inverse()
 
 
