@@ -1,10 +1,6 @@
 """Tests classes and functions in boat_simulator/common/unit_conversions.py"""
 
-from boat_simulator.common.unit_conversions import (
-    ConversionFactor,
-    ConversionFactors,
-    UnitConverter,
-)
+from boat_simulator.common.unit_conversions import ConversionFactor
 import pytest
 import math
 
