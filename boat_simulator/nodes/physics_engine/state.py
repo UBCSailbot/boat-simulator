@@ -10,9 +10,9 @@ class BoatState():
         self._cartesian_position = np.array([0, 0, 0])
         self._cartesian_velocity = np.array([0, 0, 0])
         self._cartesian_acceleration = np.array([0, 0, 0])
-        self._angular_position = np.array([0, 0, 0])  # rads
-        self._angular_velocity = np.array([0, 0, 0])  # rads/s
-        self._angular_acceleration = np.array([0, 0, 0])  # rads/s^2
+        self._angular_position = np.array([0, 0, 0])
+        self._angular_velocity = np.array([0, 0, 0])
+        self._angular_acceleration = np.array([0, 0, 0])  # [heave, surge, sway]
         self._moment_of_inertia = moment_of_inertia
         self._update_frequency = update_frequency
         self._net_force = np.array([0, 0, 0])
@@ -47,7 +47,7 @@ class BoatState():
 
     @property
     def model_state(self):
-        return np.concatenate(self.cartesian_acceleration[:-1], self.angular_acceleration, axis=0)
+        return np.concatenate((self.cartesian_acceleration[:-1], self.angular_acceleration), axis=0)
 
     def update_kinematics(self, net_force, torque):
         self._cartesian_acceleration = (net_force / self._mass)
