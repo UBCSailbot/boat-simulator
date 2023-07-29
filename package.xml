@@ -12,8 +12,7 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
+  <exec_depend>custom_interfaces</exec_depend>
 
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
