@@ -4,7 +4,7 @@
   <name>boat_simulator</name>
   <version>0.0.0</version>
   <description>UBC Sailbot's Boat Simulator</description>
-  <maintainer email="devon.friend45@gmail.com">Devon Friend</maintainer>
+  <maintainer email="software@ubcsailbot.org">Devon Friend</maintainer>
   <license>Apache License 2.0</license>
 
   <test_depend>ament_copyright</test_depend>
@@ -12,6 +12,7 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
+  <exec_depend>custom_interfaces</exec_depend>
   <exec_depend>ros2launch</exec_depend>
 
   <export>
