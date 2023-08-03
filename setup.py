@@ -20,12 +20,14 @@ setup(
     maintainer="Devon Friend",
     maintainer_email="software@ubcsailbot.org",
     description="UBC Sailbot's Boat Simulator",
-    license="Apache License 2.0",
+    license="MIT",
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
             "physics_engine_node = "
             + "boat_simulator.nodes.physics_engine.physics_engine_node:main",
+            "low_level_control_node = "
+            + "boat_simulator.nodes.low_level_control.low_level_control_node:main",
         ],
     },
 )
