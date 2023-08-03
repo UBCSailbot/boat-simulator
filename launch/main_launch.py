@@ -14,6 +14,7 @@ from launch.substitutions import LaunchConfiguration
 # Local launch arguments and constants
 PACKAGE_NAME = "boat_simulator"
 PHYSICS_ENGINE_NODE_NAME = "physics_engine_node"
+LOW_LEVEL_CONTROL_NODE_NAME = "low_level_control_node"
 
 # Add args with DeclareLaunchArguments object(s) and utilize in setup_launch()
 LOCAL_LAUNCH_ARGUMENTS = [
@@ -65,17 +66,18 @@ def setup_launch(context: LaunchContext) -> List[LaunchDescriptionEntity]:
     """
     launch_description_entities = list()
     launch_description_entities.append(get_physics_engine_description(context))
+    launch_description_entities.append(get_low_level_control_description(context))
     return launch_description_entities
 
 
 def get_physics_engine_description(context: LaunchContext) -> Node:
-    """Gets the launch description for the physics_engine_node node.
+    """Gets the launch description for the physics engine node.
 
     Args:
         context (LaunchContext): The current launch context.
 
     Returns:
-        Node: The node object that launches the navigate_main node.
+        Node: The node object that launches the physics engine node.
     """
     ros_parameters = [LaunchConfiguration("config").perform(context)]
     ros_arguments = [
@@ -91,6 +93,33 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
         namespace=PACKAGE_NAME,
         executable=PHYSICS_ENGINE_NODE_NAME,
         name=PHYSICS_ENGINE_NODE_NAME,
+        parameters=ros_parameters,
+        ros_arguments=ros_arguments,
+    )
+
+    return node
+
+
+def get_low_level_control_description(context: LaunchContext) -> Node:
+    """Gets the launch description for the low level control node.
+
+    Args:
+        context (LaunchContext): The current launch context.
+
+    Returns:
+        Node: The node object that launches the low level control node.
+    """
+    ros_parameters = [LaunchConfiguration("config").perform(context)]
+    ros_arguments = [
+        "--log-level",
+        [f"{LOW_LEVEL_CONTROL_NODE_NAME}:=", LaunchConfiguration("log_level")],
+    ]
+
+    node = Node(
+        package=PACKAGE_NAME,
+        namespace=PACKAGE_NAME,
+        executable=LOW_LEVEL_CONTROL_NODE_NAME,
+        name=LOW_LEVEL_CONTROL_NODE_NAME,
         parameters=ros_parameters,
         ros_arguments=ros_arguments,
     )
