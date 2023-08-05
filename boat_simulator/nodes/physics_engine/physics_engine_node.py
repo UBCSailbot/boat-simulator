@@ -65,8 +65,8 @@ class PhysicsEngineNode(Node):
         self.get_logger().debug(f"{multithreading_enabled}")
 
         # TODO Do we need to worry about the counter overflowing?
-        self.__is_multithreading_enabled = multithreading_enabled
         self.__publish_counter = 0
+        self.__is_multithreading_enabled = multithreading_enabled
         self.__rudder_angle = 0
         self.__sail_trim_tab_angle = 0
         self.__desired_heading = None
