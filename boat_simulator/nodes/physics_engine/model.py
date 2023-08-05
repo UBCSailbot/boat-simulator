@@ -15,11 +15,15 @@ class BoatState:
     __angular_velocity = np.zeros(shape=(3,), dtype=np.float32)
     __angular_acceleration = np.zeros(shape=(3,), dtype=np.float32)
     __inertia = np.identity(n=3, dtype=np.float32)
+    __inertia_inverse = np.identity(n=3, dtype=np.float32)
     __boat_mass = 1.0
     __timestep = 1.0
 
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
-        pass
+        self.__timestep = timestep
+        self.__boat_mass = mass
+        self.__inertia = np.array(inertia, dtype=np.float32)
+        self.__inertia_inverse = np.linalg.inv(self.__inertia)
 
     def step(self, wind_vel: ArrayLike) -> None:
         pass
@@ -28,23 +32,23 @@ class BoatState:
         raise NotImplementedError()
 
     def __compute_next_position(self, pos: ArrayLike, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
+        return pos + (vel / self.timestep) + (acc / (2 * self.timestep**2))
 
     def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
+        return vel + (acc / self.timestep)
 
     def __compute_next_relative_acceleration(
         self, mass: Scalar, net_force: ArrayLike
     ) -> ArrayLike:
-        raise NotImplementedError()
+        return net_force / mass
 
     def __compute_next_ang_velocity(self, ang_vel: ArrayLike, ang_acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
+        return ang_vel + (ang_acc / self.timestep)
 
     def __compute_next_ang_acceleration(
-        self, inertia: ArrayLike, net_torque: ArrayLike
+        self, inertia_inverse: ArrayLike, net_torque: ArrayLike
     ) -> ArrayLike:
-        raise NotImplementedError()
+        return net_torque * inertia_inverse
 
     @property
     def global_position(self) -> ArrayLike:
@@ -87,6 +91,10 @@ class BoatState:
     @property
     def inertia(self) -> ArrayLike:
         return self.__inertia
+
+    @property
+    def inertia_inverse(self) -> ArrayLike:
+        return self.__inertia_inverse
 
     @property
     def boat_mass(self) -> Scalar:
