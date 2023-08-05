@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
 
+import sys
 from typing import Optional
 
 import rclpy
+import rclpy.utilities
+from rclpy.action import ActionClient
+from rclpy.action.client import ClientGoalHandle, Future
+from rclpy.executors import Executor, MultiThreadedExecutor, SingleThreadedExecutor
+from rclpy.node import CallbackGroup, MutuallyExclusiveCallbackGroup, Node
+from rclpy.publisher import Publisher
+from rclpy.subscription import Subscription
+
+import boat_simulator.common.constants as Constants
+from boat_simulator.common.types import Scalar
+from boat_simulator.nodes.physics_engine.decorators import require_all_subs_active
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
 from custom_interfaces.msg import (
     GPS,
@@ -11,43 +23,60 @@ from custom_interfaces.msg import (
     WindSensor,
     WindSensors,
 )
-from rclpy.action import ActionClient
-from rclpy.action.client import ClientGoalHandle, Future
-from rclpy.node import Node
-from rclpy.publisher import Publisher
-from rclpy.subscription import Subscription
-
-import boat_simulator.common.constants as Constants
-from boat_simulator.common.types import Scalar
-from boat_simulator.nodes.physics_engine.decorators import require_all_subs_active
 
 # TODO Setup action server for rudder actuation
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = PhysicsEngineNode()
-    rclpy.spin(node)
+    multithreading_enabled = is_multithreading_enabled()
+    node = PhysicsEngineNode(multithreading_enabled=multithreading_enabled)
+    executor = get_executor(is_multithreading_enabled=multithreading_enabled)
+    executor.add_node(node)
+    executor.spin()
     rclpy.shutdown()
 
 
+def is_multithreading_enabled():
+    try:
+        is_multithreading_enabled_str_index = (
+            sys.argv.index(Constants.MULTITHREADING_CLI_ARG_NAME) + 1
+        )
+        print(sys.argv[is_multithreading_enabled_str_index])
+        is_multithreading_enabled = sys.argv[is_multithreading_enabled_str_index] == "true"
+    except ValueError:
+        is_multithreading_enabled = False
+
+    return is_multithreading_enabled
+
+
+def get_executor(is_multithreading_enabled: bool) -> Executor:
+    if is_multithreading_enabled:
+        return MultiThreadedExecutor()
+    else:
+        return SingleThreadedExecutor()
+
+
 class PhysicsEngineNode(Node):
-    def __init__(self):
+    def __init__(self, multithreading_enabled: bool = False):
         super().__init__(node_name="physics_engine_node")
 
         self.get_logger().debug("Initializing node...")
-
-        self.__declare_ros_parameters()
-        self.__init_subscriptions()
-        self.__init_publishers()
-        self.__init_action_clients()
-        self.__init_timer_callbacks()
+        self.get_logger().debug(f"{multithreading_enabled}")
 
         # TODO Do we need to worry about the counter overflowing?
+        self.__is_multithreading_enabled = multithreading_enabled
         self.__publish_counter = 0
         self.__rudder_angle = 0
         self.__sail_trim_tab_angle = 0
         self.__desired_heading = None
+
+        self.__declare_ros_parameters()
+        self.__init_callback_groups()
+        self.__init_subscriptions()
+        self.__init_publishers()
+        self.__init_action_clients()
+        self.__init_timer_callbacks()
 
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
@@ -60,6 +89,16 @@ class PhysicsEngineNode(Node):
             ],
         )
 
+    def __init_callback_groups(self):
+        if self.is_multithreading_enabled:
+            self.__pub_sub_callback_group = MutuallyExclusiveCallbackGroup()
+            self.__rudder_action_callback_group = MutuallyExclusiveCallbackGroup()
+            self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
+        else:
+            self.__pub_sub_callback_group = self.default_callback_group
+            self.__rudder_action_callback_group = self.default_callback_group
+            self.__sail_action_callback_group = self.default_callback_group
+
     def __init_subscriptions(self):
         self.get_logger().debug("Initializing subscriptions...")
 
@@ -68,6 +107,7 @@ class PhysicsEngineNode(Node):
             topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.DESIRED_HEADING,
             callback=self.__desired_heading_sub_callback,
             qos_profile=Constants.QOS_DEPTH,
+            callback_group=self.pub_sub_callback_group,
         )
 
         self.get_logger().debug("Done initializing subscriptions...")
@@ -98,11 +138,13 @@ class PhysicsEngineNode(Node):
             node=self,
             action_type=SimRudderActuation,
             action_name=Constants.ACTION_CLIENTS.RUDDER_ACTUATION,
+            callback_group=self.rudder_action_callback_group,
         )
         self.__sail_actuation_action_client = ActionClient(
             node=self,
             action_type=SimSailTrimTabActuation,
             action_name=Constants.ACTION_CLIENTS.SAIL_ACTUATION,
+            callback_group=self.sail_action_callback_group,
         )
 
     def __init_timer_callbacks(self):
@@ -111,11 +153,15 @@ class PhysicsEngineNode(Node):
         self.create_timer(
             timer_period_sec=self.pub_period,
             callback=self.__publish,
+            callback_group=self.pub_sub_callback_group,
         )
         self.create_timer(
             timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
             callback=self.__rudder_action_send_goal,
+            callback_group=self.rudder_action_callback_group,
         )
+
+        # TODO Add timer for sail action callback
 
         self.get_logger().debug("Done initializing timer callbacks...")
 
@@ -233,12 +279,12 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(f"Received data from {self.desired_heading_sub.topic}: {msg}")
         self.__desired_heading = msg
 
-    @require_all_subs_active
+    # @require_all_subs_active
     def __rudder_action_send_goal(self):
         self.get_logger().debug("Initiating goal request for rudder actuation action")
 
         goal_msg = SimRudderActuation.Goal()
-        goal_msg.desired_heading = self.desired_heading
+        # goal_msg.desired_heading = self.desired_heading
 
         is_timed_out = not self.rudder_actuation_action_client.wait_for_server(
             timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
@@ -278,6 +324,22 @@ class PhysicsEngineNode(Node):
         self.get_logger().debug(
             f"Rudder actuation action reported a rudder angle of {self.__rudder_angle}"
         )
+
+    @property
+    def is_multithreading_enabled(self) -> bool:
+        return self.__is_multithreading_enabled
+
+    @property
+    def pub_sub_callback_group(self) -> CallbackGroup:
+        return self.__pub_sub_callback_group
+
+    @property
+    def rudder_action_callback_group(self) -> CallbackGroup:
+        return self.__rudder_action_callback_group
+
+    @property
+    def sail_action_callback_group(self) -> CallbackGroup:
+        return self.__sail_action_callback_group
 
     @property
     def pub_period(self) -> float:

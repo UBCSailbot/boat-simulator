@@ -6,6 +6,7 @@ from typing import List
 
 from launch_ros.actions import Node
 
+import boat_simulator.common.constants as Constants
 from launch import LaunchDescription, LaunchDescriptionEntity
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.launch_context import LaunchContext
@@ -19,7 +20,10 @@ LOW_LEVEL_CONTROL_NODE_NAME = "low_level_control_node"
 # Add args with DeclareLaunchArguments object(s) and utilize in setup_launch()
 LOCAL_LAUNCH_ARGUMENTS = [
     DeclareLaunchArgument(
-        name="test_sim_argument", default_value="Hello", description="This is a test argument."
+        name="enable_sim_multithreading",
+        default_value="false",
+        choices=["true", "false"],
+        description="Enable multithreaded execution of callbacks in the boat simulator",
     )
 ]
 
@@ -84,9 +88,10 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
         "--log-level",
         [f"{PHYSICS_ENGINE_NODE_NAME}:=", LaunchConfiguration("log_level")],
     ]
-
-    # TODO Delete later
-    print(LaunchConfiguration("test_sim_argument").perform(context))
+    local_arguments = [
+        Constants.MULTITHREADING_CLI_ARG_NAME,
+        [LaunchConfiguration("enable_sim_multithreading")],
+    ]
 
     node = Node(
         package=PACKAGE_NAME,
@@ -94,6 +99,7 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
         name=PHYSICS_ENGINE_NODE_NAME,
         parameters=ros_parameters,
         ros_arguments=ros_arguments,
+        arguments=local_arguments,
     )
 
     return node
@@ -113,14 +119,18 @@ def get_low_level_control_description(context: LaunchContext) -> Node:
         "--log-level",
         [f"{LOW_LEVEL_CONTROL_NODE_NAME}:=", LaunchConfiguration("log_level")],
     ]
+    local_arguments = [
+        Constants.MULTITHREADING_CLI_ARG_NAME,
+        [LaunchConfiguration("enable_sim_multithreading")],
+    ]
 
     node = Node(
         package=PACKAGE_NAME,
-        namespace=PACKAGE_NAME,
         executable=LOW_LEVEL_CONTROL_NODE_NAME,
         name=LOW_LEVEL_CONTROL_NODE_NAME,
         parameters=ros_parameters,
         ros_arguments=ros_arguments,
+        arguments=local_arguments,
     )
 
     return node

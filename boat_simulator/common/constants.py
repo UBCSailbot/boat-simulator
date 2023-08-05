@@ -25,7 +25,8 @@ class PhysicsEnginePublisherTopics:
 
 # Accessible constants
 ACTION_CLIENTS = ActionClients()
-ACTION_SEND_GOAL_TIMEOUT_SEC = 1
+ACTION_SEND_GOAL_TIMEOUT_SEC = 2
+MULTITHREADING_CLI_ARG_NAME = "--enable-multithreading"
 PHYSICS_ENGINE_PUBLISHERS = PhysicsEnginePublisherTopics()
 PHYSICS_ENGINE_SUBSCRIPTIONS = PhysicsEngineSubscriptionTopics()
 ORIENTATION_INDICES = Enum("ORIENTATION_INDICES", ["PITCH", "ROLL", "YAW"])
