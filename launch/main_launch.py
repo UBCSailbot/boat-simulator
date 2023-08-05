@@ -90,7 +90,6 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
 
     node = Node(
         package=PACKAGE_NAME,
-        namespace=PACKAGE_NAME,
         executable=PHYSICS_ENGINE_NODE_NAME,
         name=PHYSICS_ENGINE_NODE_NAME,
         parameters=ros_parameters,
