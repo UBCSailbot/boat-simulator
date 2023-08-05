@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
+from typing import Optional
+
 import rclpy
+from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
 from custom_interfaces.msg import (
     GPS,
     DesiredHeading,
@@ -8,11 +11,15 @@ from custom_interfaces.msg import (
     WindSensor,
     WindSensors,
 )
+from rclpy.action import ActionClient
+from rclpy.action.client import ClientGoalHandle, Future
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 
 import boat_simulator.common.constants as Constants
+from boat_simulator.common.types import Scalar
+from boat_simulator.nodes.physics_engine.decorators import require_all_subs_active
 
 # TODO Setup action server for rudder actuation
 
@@ -33,10 +40,13 @@ class PhysicsEngineNode(Node):
         self.__declare_ros_parameters()
         self.__init_subscriptions()
         self.__init_publishers()
+        self.__init_action_clients()
         self.__init_timer_callbacks()
 
         # TODO Do we need to worry about the counter overflowing?
         self.__publish_counter = 0
+        self.__rudder_angle = 0
+        self.__sail_trim_tab_angle = 0
         self.__desired_heading = None
 
         self.get_logger().debug("Node initialization complete. Starting execution...")
@@ -83,15 +93,33 @@ class PhysicsEngineNode(Node):
 
         self.get_logger().debug("Done initializing publishers...")
 
+    def __init_action_clients(self):
+        self.__rudder_actuation_action_client = ActionClient(
+            node=self,
+            action_type=SimRudderActuation,
+            action_name=Constants.ACTION_CLIENTS.RUDDER_ACTUATION,
+        )
+        self.__sail_actuation_action_client = ActionClient(
+            node=self,
+            action_type=SimSailTrimTabActuation,
+            action_name=Constants.ACTION_CLIENTS.SAIL_ACTUATION,
+        )
+
     def __init_timer_callbacks(self):
         self.get_logger().debug("Initializing timer callbacks...")
-        self.create_timer(timer_period_sec=self.pub_period, callback=self.__publish)
+
+        self.create_timer(
+            timer_period_sec=self.pub_period,
+            callback=self.__publish,
+        )
+        self.create_timer(
+            timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
+            callback=self.__rudder_action_send_goal,
+        )
+
         self.get_logger().debug("Done initializing timer callbacks...")
 
     def __publish(self):
-        if not self.__is_all_subs_active():
-            self.get_logger().warn("Subscriber data not valid from `desired_heading`")
-
         # TODO Get updated boat state and publish
         # TODO Get wind sensor data and publish
 
@@ -201,16 +229,55 @@ class PhysicsEngineNode(Node):
         # self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}: {msg}")
         self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}")
 
-    def __is_all_subs_active(self) -> bool:
-        is_desired_heading_valid = self.desired_heading is not None
-        self.get_logger().debug(
-            f"Is `desired_heading` subscription valid? {is_desired_heading_valid}"
-        )
-        return is_desired_heading_valid
-
     def __desired_heading_sub_callback(self, msg: DesiredHeading):
         self.get_logger().info(f"Received data from {self.desired_heading_sub.topic}: {msg}")
         self.__desired_heading = msg
+
+    @require_all_subs_active
+    def __rudder_action_send_goal(self):
+        self.get_logger().debug("Initiating goal request for rudder actuation action")
+
+        goal_msg = SimRudderActuation.Goal()
+        goal_msg.desired_heading = self.desired_heading
+
+        is_timed_out = not self.rudder_actuation_action_client.wait_for_server(
+            timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
+        )
+
+        if is_timed_out:
+            self.get_logger().warn(
+                "Rudder actuation action goal request timed out after "
+                + f"{Constants.ACTION_SEND_GOAL_TIMEOUT_SEC} seconds. Aborting..."
+            )
+        else:
+            send_goal_future = self.rudder_actuation_action_client.send_goal_async(
+                goal=goal_msg, feedback_callback=self.__rudder_action_feedback_callback
+            )
+            send_goal_future.add_done_callback(self.__rudder_action_goal_response_callback)
+            self.get_logger().debug("Completed goal request for rudder actuation action")
+
+    def __rudder_action_goal_response_callback(self, future: Future):
+        goal_handle: Optional[ClientGoalHandle] = future.result()
+        if (not goal_handle) or (not goal_handle.accepted):
+            self.get_logger().warn("Attempted to send rudder actuation goal, but it was rejected")
+            return
+        self.get_logger().debug("Rudder actuation goal was accepted. Beginning rudder actuation")
+        rudder_get_result_future = goal_handle.get_result_async()
+        rudder_get_result_future.add_done_callback(self.__rudder_action_get_result_callback)
+
+    def __rudder_action_get_result_callback(self, future: Future):
+        result = future.result().result
+        self.get_logger().debug(
+            "Rudder actuation action finished with a heading residual of "
+            + f"{result.remaining_angular_distance:.2f} radians and final "
+            + f"rudder angle of {self.__rudder_angle} radians"
+        )
+
+    def __rudder_action_feedback_callback(self, feedback_msg):
+        self.__rudder_angle = feedback_msg.feedback.rudder_angle
+        self.get_logger().debug(
+            f"Rudder actuation action reported a rudder angle of {self.__rudder_angle}"
+        )
 
     @property
     def pub_period(self) -> float:
@@ -233,12 +300,28 @@ class PhysicsEngineNode(Node):
         return self.__kinematics_pub
 
     @property
-    def desired_heading(self) -> DesiredHeading | None:
+    def desired_heading(self) -> Optional[DesiredHeading]:
         return self.__desired_heading
 
     @property
     def desired_heading_sub(self) -> Subscription:
         return self.__desired_heading_sub
+
+    @property
+    def rudder_angle(self) -> Scalar:
+        return self.__rudder_angle
+
+    @property
+    def sail_trim_tab_angle(self) -> Scalar:
+        return self.__sail_trim_tab_angle
+
+    @property
+    def rudder_actuation_action_client(self) -> ActionClient:
+        return self.__rudder_actuation_action_client
+
+    @property
+    def sail_actuation_action_client(self) -> ActionClient:
+        return self.__sail_actuation_action_client
 
 
 if __name__ == "__main__":
