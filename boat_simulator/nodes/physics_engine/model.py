@@ -1,6 +1,6 @@
 from boat_simulator.common import utils
+from boat_simulator.boat_simulator.nodes.physics_engine.computation import BoatComputation
 from boat_simulator.common.types import Scalar
-from typing import Tuple
 from numpy.typing import ArrayLike
 import numpy as np
 import boat_simulator.common.constants as constants
@@ -18,37 +18,39 @@ class BoatState:
     __inertia_inverse = np.identity(n=3, dtype=np.float32)
     __boat_mass = 1.0
     __timestep = 1.0
+    __boat_computation = BoatComputation(__timestep)
 
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
         self.__timestep = timestep
         self.__boat_mass = mass
         self.__inertia = np.array(inertia, dtype=np.float32)
         self.__inertia_inverse = np.linalg.inv(self.__inertia)
+        self.__boat_computation = BoatComputation(self.__timestep)
 
     def step(self, wind_vel: ArrayLike) -> None:
-        pass
+        net_force, net_torque = self.__boat_computation.compute_net_force_and_torque(wind_vel)
 
-    def __compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
-        raise NotImplementedError()
+        next_relative_acceleration = self.__boat_computation.compute_next_relative_acceleration(
+            self.boat_mass, net_force
+        )
+        next_ang_acceleration = self.__boat_computation.compute_next_ang_acceleration(self.inertia_inverse, net_torque)
 
-    def __compute_next_position(self, pos: ArrayLike, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        return pos + (vel / self.timestep) + (acc / (2 * self.timestep**2))
+        next_relative_velocity = self.__boat_computation.compute_next_relative_velocity(
+            self.relative_velocity, next_relative_acceleration
+        )
+        next_ang_velocity = self.__boat_computation.compute_next_ang_velocity(
+            self.angular_velocity, next_ang_acceleration
+        )
 
-    def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        return vel + (acc / self.timestep)
+        next_global_position = self.__boat_computation.compute_next_position(
+            self.global_position, self.global_velocity, self.global_acceleration
+        )
 
-    def __compute_next_relative_acceleration(
-        self, mass: Scalar, net_force: ArrayLike
-    ) -> ArrayLike:
-        return net_force / mass
-
-    def __compute_next_ang_velocity(self, ang_vel: ArrayLike, ang_acc: ArrayLike) -> ArrayLike:
-        return ang_vel + (ang_acc / self.timestep)
-
-    def __compute_next_ang_acceleration(
-        self, inertia_inverse: ArrayLike, net_torque: ArrayLike
-    ) -> ArrayLike:
-        return net_torque * inertia_inverse
+        self.__relative_velocity = next_relative_velocity
+        self.__relative_acceleration = next_relative_acceleration
+        self.__angular_velocity = next_ang_velocity
+        self.__angular_acceleration = next_ang_acceleration
+        self.__global_position = next_global_position
 
     @property
     def global_position(self) -> ArrayLike:
