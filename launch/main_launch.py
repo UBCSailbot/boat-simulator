@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 
 import boat_simulator.common.constants as Constants
 from launch import LaunchDescription, LaunchDescriptionEntity
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable
 from launch.launch_context import LaunchContext
 from launch.substitutions import LaunchConfiguration
 
@@ -38,7 +38,12 @@ def generate_launch_description() -> LaunchDescription:
     global_launch_arguments = get_global_launch_arguments()
     local_launch_arguments = LOCAL_LAUNCH_ARGUMENTS
     return LaunchDescription(
-        [*global_launch_arguments, *local_launch_arguments, OpaqueFunction(function=setup_launch)]
+        [
+            *global_launch_arguments,
+            *local_launch_arguments,
+            OpaqueFunction(function=set_environment_variables),
+            OpaqueFunction(function=setup_launch),
+        ]
     )
 
 
@@ -56,6 +61,18 @@ def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
     spec.loader.exec_module(module)
     global_launch_arguments = module.GLOBAL_LAUNCH_ARGUMENTS
     return global_launch_arguments
+
+
+def set_environment_variables(context: LaunchContext) -> List[SetEnvironmentVariable]:
+    """Sets environment variables for the `boat_simulator` package.
+
+    Args:
+        context (LaunchContext): The current launch context.
+
+    Returns:
+        List[SetEnvironmentVariable]: List of environment variables to be set.
+    """
+    return [SetEnvironmentVariable("RCUTILS_COLORIZED_OUTPUT", "1")]
 
 
 def setup_launch(context: LaunchContext) -> List[LaunchDescriptionEntity]:
