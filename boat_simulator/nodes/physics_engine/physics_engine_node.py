@@ -16,15 +16,18 @@ from custom_interfaces.msg import (
 from rclpy.action import ActionClient
 from rclpy.action.client import ClientGoalHandle, Future
 from rclpy.executors import Executor, MultiThreadedExecutor, SingleThreadedExecutor
-from rclpy.node import CallbackGroup, MutuallyExclusiveCallbackGroup, Node
+from rclpy.node import (
+    CallbackGroup,
+    MutuallyExclusiveCallbackGroup,
+    Node,
+    ReentrantCallbackGroup,
+)
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 
 import boat_simulator.common.constants as Constants
 from boat_simulator.common.types import Scalar
 from boat_simulator.nodes.physics_engine.decorators import require_all_subs_active
-
-# TODO Setup action server for rudder actuation
 
 
 def main(args=None):
@@ -39,13 +42,10 @@ def main(args=None):
 
 def is_multithreading_enabled():
     try:
-        is_multithreading_enabled_str_index = (
-            sys.argv.index(Constants.MULTITHREADING_CLI_ARG_NAME) + 1
-        )
-        is_multithreading_enabled = sys.argv[is_multithreading_enabled_str_index] == "true"
+        is_multithreading_enabled_index = sys.argv.index(Constants.MULTITHREADING_CLI_ARG_NAME) + 1
+        is_multithreading_enabled = sys.argv[is_multithreading_enabled_index] == "true"
     except ValueError:
         is_multithreading_enabled = False
-
     return is_multithreading_enabled
 
 
@@ -59,16 +59,11 @@ def get_executor(is_multithreading_enabled: bool) -> Executor:
 class PhysicsEngineNode(Node):
     def __init__(self, multithreading_enabled: bool = False):
         super().__init__(node_name="physics_engine_node")
+        self.__is_multithreading_enabled = multithreading_enabled
 
         self.get_logger().debug("Initializing node...")
 
-        # TODO Do we need to worry about the counter overflowing?
-        self.__publish_counter = 0
-        self.__is_multithreading_enabled = multithreading_enabled
-        self.__rudder_angle = 0
-        self.__sail_trim_tab_angle = 0
-        self.__desired_heading = None
-
+        self.__init_private_attributes()
         self.__declare_ros_parameters()
         self.__init_callback_groups()
         self.__init_subscriptions()
@@ -77,6 +72,13 @@ class PhysicsEngineNode(Node):
         self.__init_timer_callbacks()
 
         self.get_logger().debug("Node initialization complete. Starting execution...")
+
+    def __init_private_attributes(self):
+        # TODO Do we need to worry about the counter overflowing?
+        self.__publish_counter = 0
+        self.__rudder_angle = 0
+        self.__sail_trim_tab_angle = 0
+        self.__desired_heading = None
 
     def __declare_ros_parameters(self):
         # TODO Update global YAML file with more configuration parameters and declare them here
@@ -89,11 +91,19 @@ class PhysicsEngineNode(Node):
 
     def __init_callback_groups(self):
         if self.is_multithreading_enabled:
-            self.__pub_sub_callback_group = MutuallyExclusiveCallbackGroup()
+            self.get_logger().debug(
+                "Multithreading enabled. Initializing multiple callback groups"
+            )
+            self.__pub_callback_group = MutuallyExclusiveCallbackGroup()
+            self.__sub_callback_group = ReentrantCallbackGroup()
             self.__rudder_action_callback_group = MutuallyExclusiveCallbackGroup()
             self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
         else:
-            self.__pub_sub_callback_group = self.default_callback_group
+            self.get_logger().debug(
+                "Multithreading disabled. Assigning all callbacks to the default callback group"
+            )
+            self.__pub_callback_group = self.default_callback_group
+            self.__sub_callback_group = self.default_callback_group
             self.__rudder_action_callback_group = self.default_callback_group
             self.__sail_action_callback_group = self.default_callback_group
 
@@ -105,7 +115,7 @@ class PhysicsEngineNode(Node):
             topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.DESIRED_HEADING,
             callback=self.__desired_heading_sub_callback,
             qos_profile=Constants.QOS_DEPTH,
-            callback_group=self.pub_sub_callback_group,
+            callback_group=self.sub_callback_group,
         )
 
         self.get_logger().debug("Done initializing subscriptions...")
@@ -132,6 +142,8 @@ class PhysicsEngineNode(Node):
         self.get_logger().debug("Done initializing publishers...")
 
     def __init_action_clients(self):
+        self.get_logger().debug("Initializing action clients...")
+
         self.__rudder_actuation_action_client = ActionClient(
             node=self,
             action_type=SimRudderActuation,
@@ -145,13 +157,15 @@ class PhysicsEngineNode(Node):
             callback_group=self.sail_action_callback_group,
         )
 
+        self.get_logger().debug("Done initializing action clients...")
+
     def __init_timer_callbacks(self):
         self.get_logger().debug("Initializing timer callbacks...")
 
         self.create_timer(
             timer_period_sec=self.pub_period,
             callback=self.__publish,
-            callback_group=self.pub_sub_callback_group,
+            callback_group=self.pub_callback_group,
         )
         self.create_timer(
             timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
@@ -328,8 +342,12 @@ class PhysicsEngineNode(Node):
         return self.__is_multithreading_enabled
 
     @property
-    def pub_sub_callback_group(self) -> CallbackGroup:
-        return self.__pub_sub_callback_group
+    def pub_callback_group(self) -> CallbackGroup:
+        return self.__pub_callback_group
+
+    @property
+    def sub_callback_group(self) -> CallbackGroup:
+        return self.__sub_callback_group
 
     @property
     def rudder_action_callback_group(self) -> CallbackGroup:
