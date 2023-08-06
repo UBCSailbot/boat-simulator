@@ -2,6 +2,14 @@ from typing import Callable
 
 
 def require_all_subs_active(func: Callable):
+    """A decorator that asserts all subscriptions must be active in a node in order for a the
+    wrapped function to be executed. This decorator is only meant to be used inside the
+    `PhysicsEngineNode` class.
+
+    Args:
+        func (Callable): The wrapped function.
+    """
+
     def is_all_subs_active(obj) -> bool:
         is_desired_heading_valid = obj.desired_heading is not None
         obj.get_logger().debug(
