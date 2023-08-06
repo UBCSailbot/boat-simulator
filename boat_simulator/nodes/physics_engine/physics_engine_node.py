@@ -65,12 +65,27 @@ def get_executor(is_multithreading_enabled: bool) -> Executor:
 
 
 class PhysicsEngineNode(Node):
+    """Stores, updates, and maintains the state of the physics model of the boat simulator.
+
+    Subscriptions:
+        desired_heading_sub (Subscription): Subscribes to a `DesiredHeading` message.
+
+    Publishers:
+        gps_pub (Publisher): Publishes GPS data in a `GPS` message.
+        wind_sensors_pub (Publisher): Publishes wind sensor data in a `WindSensors` message.
+        kinematics_pub (Publisher): Publishes kinematics data in a `SimWorldState` message.
+
+    Action Clients:
+        rudder_actuation_action_client (ActionClient): Requests rudder actuations.
+        sail_actuation_action_client (ActionClient): Requests sail trim tab actuations.
+    """
+
     def __init__(self, multithreading_enabled: bool):
         """Initializes an instance of this class.
 
         Args:
-            multithreading_enabled (bool): True if this node uses a multithreaded
-            executor, and false for a single threaded executor.
+            multithreading_enabled (bool): True if this node uses a multithreaded executor, and
+            false for a single threaded executor.
         """
         super().__init__(node_name="physics_engine_node")
         self.__is_multithreading_enabled = multithreading_enabled
@@ -85,11 +100,11 @@ class PhysicsEngineNode(Node):
         self.__init_timer_callbacks()
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
+    # INITIALIZATION HELPERS
     def __init_private_attributes(self):
-        """Initializes private attributes of this class that are not initialized anywhere else
-        during the initialization process.
+        """Initializes the private attributes of this class that are not set anywhere else during
+        the initialization process.
         """
-        # TODO Do we need to worry about the counter overflowing?
         self.__publish_counter = 0
         self.__rudder_angle = 0
         self.__sail_trim_tab_angle = 0
@@ -229,6 +244,7 @@ class PhysicsEngineNode(Node):
             callback_group=self.sail_action_callback_group,
         )
 
+    # PUBLISHER CALLBACKS
     def __publish(self):
         """Synchronously publishes data to all publishers at once."""
         # TODO Get updated boat state and publish (should this be separate from publishing?)
@@ -353,6 +369,7 @@ class PhysicsEngineNode(Node):
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
+    # SUBSCRIPTION CALLBACKS
     def __desired_heading_sub_callback(self, msg: DesiredHeading):
         """Stores the latest desired heading data.
 
@@ -365,6 +382,7 @@ class PhysicsEngineNode(Node):
         )
         self.__desired_heading = msg
 
+    # RUDDER ACTUATION ACTION CLIENT CALLBACKS
     @require_all_subs_active
     def __rudder_action_send_goal(self):
         """Asynchronously sends a goal request to the rudder actuation action server
@@ -437,6 +455,7 @@ class PhysicsEngineNode(Node):
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
+    # SAIL ACTUATION ACTION CLIENT CALLBACKS
     @require_all_subs_active
     def __sail_action_send_goal(self):
         """Asynchronously sends a goal request to the sail actuation action server
@@ -512,6 +531,7 @@ class PhysicsEngineNode(Node):
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
+    # CLASS PROPERTY PUBLIC GETTERS
     @property
     def is_multithreading_enabled(self) -> bool:
         return self.__is_multithreading_enabled
