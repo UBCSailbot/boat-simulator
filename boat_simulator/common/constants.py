@@ -51,4 +51,4 @@ RUDDER_ACTUATION_REQUEST_PERIOD_SEC = 10  # TODO Make this a ROS parameter
 RUDDER_ACTUATION_EXECUTION_PERIOD_SEC = 0.5  # TODO Make this a ROS parameter
 RUDDER_ACTUATION_NUM_LOOP_EXECUTIONS = 10  # TODO This is a placeholder until the PID is integrated
 
-QOS_DEPTH = 10
+QOS_DEPTH = 1
