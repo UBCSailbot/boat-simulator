@@ -11,6 +11,9 @@ from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
 from custom_interfaces.action._sim_rudder_actuation import (
     SimRudderActuation_FeedbackMessage,
 )
+from custom_interfaces.action._sim_sail_trim_tab_actuation import (
+    SimSailTrimTabActuation_FeedbackMessage,
+)
 from custom_interfaces.msg import (
     GPS,
     DesiredHeading,
@@ -212,7 +215,12 @@ class PhysicsEngineNode(Node):
             callback_group=self.rudder_action_callback_group,
         )
 
-        # TODO Add timer for sail action callback
+        # Requesting a sail actuation
+        self.create_timer(
+            timer_period_sec=Constants.SAIL_ACTUATION_REQUEST_PERIOD_SEC,
+            callback=self.__sail_action_send_goal,
+            callback_group=self.sail_action_callback_group,
+        )
 
     def __publish(self):
         """Synchronously publishes data to all publishers at once."""
@@ -404,8 +412,8 @@ class PhysicsEngineNode(Node):
         result = future.result().result
         self.get_logger().debug(
             "Rudder actuation action finished with a heading residual of "
-            + f"{result.remaining_angular_distance:.2f} radians and final "
-            + f"rudder angle of {self.__rudder_angle} radians"
+            + f"{result.remaining_angular_distance:.2f} rad and final "
+            + f"rudder angle of {self.rudder_angle:.2f} rad"
         )
 
     def __rudder_action_feedback_callback(self, feedback_msg: SimRudderActuation_FeedbackMessage):
@@ -417,8 +425,83 @@ class PhysicsEngineNode(Node):
         """
         self.__rudder_angle = feedback_msg.feedback.rudder_angle
         self.get_logger().info(
-            f"Received rudder angle of {self.__rudder_angle:.2f} rad from action "
+            f"Received rudder angle of {self.rudder_angle:.2f} rad from action "
             + f"{self.rudder_actuation_action_client._action_name}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
+
+    @require_all_subs_active
+    def __sail_action_send_goal(self):
+        """Asynchronously sends a goal request to the sail actuation action server
+        and registers a callback to execute when the server routine is complete.
+
+        All subscriptions of this node must be active for a successful action execution.
+        """
+        self.get_logger().debug("Initiating goal request for sail actuation action")
+
+        # TODO Get desired angular position from sail controller when implemented
+        # Create the goal message
+        goal_msg = SimSailTrimTabActuation.Goal()
+        goal_msg.desired_angular_position = 0.0
+
+        # Wait for the action server to be ready (the low-level control node)
+        is_request_timed_out = not self.sail_actuation_action_client.wait_for_server(
+            timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
+        )
+
+        if is_request_timed_out:
+            self.get_logger().warn(
+                "Sail actuation action goal request timed out after "
+                + f"{Constants.ACTION_SEND_GOAL_TIMEOUT_SEC} seconds. Aborting..."
+            )
+        else:
+            send_goal_future = self.sail_actuation_action_client.send_goal_async(
+                goal=goal_msg, feedback_callback=self.__sail_action_feedback_callback
+            )
+            send_goal_future.add_done_callback(self.__sail_action_goal_response_callback)
+            self.get_logger().debug("Completed goal request for sail actuation action")
+
+    def __sail_action_goal_response_callback(self, future: Future):
+        """Prepares the execution process after the sail action routine is complete. This
+        function executes when the sail actuation goal request has been acknowledged.
+
+        Args:
+            future (Future): The outcome of the goal request in the future.
+        """
+        goal_handle: Optional[ClientGoalHandle] = future.result()
+        if (not goal_handle) or (not goal_handle.accepted):
+            self.get_logger().warn("Attempted to send sail actuation goal, but it was rejected")
+            return
+        self.get_logger().debug("Sail actuation goal was accepted. Beginning sail actuation")
+        sail_get_result_future = goal_handle.get_result_async()
+        sail_get_result_future.add_done_callback(self.__sail_action_get_result_callback)
+
+    def __sail_action_get_result_callback(self, future: Future):
+        """The execution process after the sail action routine is complete.
+
+        Args:
+            future (Future): The outcome of the sail action routine in the future.
+        """
+        result = future.result().result
+        self.get_logger().debug(
+            "Sail actuation action finished with an angular residual of "
+            + f"{result.remaining_angular_distance:.2f} rad and final "
+            + f"trim tab angle of {self.sail_trim_tab_angle:.2f} rad"
+        )
+
+    def __sail_action_feedback_callback(
+        self, feedback_msg: SimSailTrimTabActuation_FeedbackMessage
+    ):
+        """Updates the sail trim tab angle as the sail action routine executes. As the action
+        routine publishes feedback, this function is executed.
+
+        Args:
+            feedback_msg (SimSailTrimTabActuation_FeedbackMessage): The feedback message.
+        """
+        self.__sail_trim_tab_angle = feedback_msg.feedback.current_angular_position
+        self.get_logger().info(
+            f"Received sail trim tab angle of {self.sail_trim_tab_angle:.2f} rad from action "
+            + f"{self.sail_actuation_action_client._action_name}",
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
