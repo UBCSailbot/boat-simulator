@@ -7,8 +7,8 @@ from enum import Enum
 # Class declarations for constants
 @dataclass
 class Actions:
-    RUDDER_ACTUATION: str = "rudder_actuation_client"
-    SAIL_ACTUATION: str = "sail_actuation_client"
+    RUDDER_ACTUATION: str = "rudder_actuation"
+    SAIL_ACTUATION: str = "sail_trim_tab_actuation"
 
 
 @dataclass

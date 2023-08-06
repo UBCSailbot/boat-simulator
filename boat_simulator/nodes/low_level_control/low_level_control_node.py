@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import sys
+"""The ROS node for the low level controller emulation."""
+
 from typing import Optional
 
 import rclpy
 import rclpy.utilities
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
+from custom_interfaces.action._sim_rudder_actuation import SimRudderActuation_Result
 from custom_interfaces.msg import GPS
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
@@ -16,7 +18,6 @@ from rclpy.node import (
     Node,
     ReentrantCallbackGroup,
 )
-from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 from rclpy.timer import Rate
 
@@ -38,25 +39,33 @@ def main(args=None):
 
 class LowLevelControlNode(Node):
     def __init__(self):
+        """Initializes an instance of this class."""
         super().__init__("low_level_control_node")
 
         self.get_logger().debug("Initializing node...")
-
-        self.__rudder_angle = 0
-        self.__sail_trim_tab_angle = 0
-        self.__desired_heading = None
-        self._is_rudder_action_active = False
-        self.__is_sail_action_active = False
-
+        self.__init_private_attributes()
         self.__declare_ros_parameters()
         self.__init_callback_groups()
         self.__init_feedback_execution_rates()
         self.__init_subscriptions()
         self.__init_action_servers()
-
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
+    def __init_private_attributes(self):
+        """Initializes private attributes of this class that are not initialized anywhere else
+        during the initialization process.
+        """
+        self.__rudder_angle = 0
+        self.__sail_trim_tab_angle = 0
+        self._is_rudder_action_active = False
+        self.__is_sail_action_active = False
+        self.__gps = None
+
     def __declare_ros_parameters(self):
+        """Declares ROS parameters from the global configuration file that will be used in this
+        node. This node will monitor for any changes to these parameters during execution and will
+        update itself accordingly.
+        """
         # TODO Update global YAML file with more configuration parameters and declare them here
         self.declare_parameters(
             namespace="",
@@ -66,11 +75,26 @@ class LowLevelControlNode(Node):
         )
 
     def __init_callback_groups(self):
+        """Initializes the callback groups. This node uses a multithreaded executor, so multiple
+        callback groups are used to parallelize multiple action servers in the same node.
+
+        Callbacks belonging to different groups may execute in parallel to each other. Learn more
+        about executors and callback groups here:
+        https://docs.ros.org/en/humble/Concepts/Intermediate/About-Executors.html#executors
+        """
+        self.get_logger().debug("Initializing callback groups...")
         self.__pub_sub_callback_group = MutuallyExclusiveCallbackGroup()
         self.__rudder_action_callback_group = ReentrantCallbackGroup()
         self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
 
     def __init_feedback_execution_rates(self):
+        """Initializes rate objects used in this node to control how often a loop is executed
+        within a callback.
+
+        WARNING: Care should be taken when using rate objects to sleep within a callback. If using
+        a single threaded executor, sleeping in a callback may block execution forever, causing a
+        deadlock. Only sleep if the node executor is multithreaded.
+        """
         self.__rudder_action_feedback_rate = self.create_rate(
             frequency=Constants.RUDDER_ACTUATION_EXECUTION_PERIOD_SEC, clock=self.get_clock()
         )
@@ -79,8 +103,11 @@ class LowLevelControlNode(Node):
         )
 
     def __init_subscriptions(self):
+        """Initializes the subscriptions of this node. Subscriptions pull data from other ROS
+        topics for further usage in this node. Data is pulled from subscriptions periodically via
+        callbacks, which are registered upon subscription initialization.
+        """
         self.get_logger().debug("Initializing subscriptions...")
-
         self.__gps_sub = self.create_subscription(
             msg_type=GPS,
             topic=Constants.LOW_LEVEL_CTRL_SUBSCRIPTIONS.GPS,
@@ -89,9 +116,11 @@ class LowLevelControlNode(Node):
             callback_group=self.pub_sub_callback_group,
         )
 
-        self.get_logger().debug("Done initializing subscriptions...")
-
     def __init_action_servers(self):
+        """Initializes the action servers of this node. Action servers perform a specified routine
+        when a goal request comes from an action client.
+        """
+        self.get_logger().debug("Initializing action servers...")
         self.__rudder_actuation_action_server = ActionServer(
             node=self,
             action_type=SimRudderActuation,
@@ -101,17 +130,38 @@ class LowLevelControlNode(Node):
         )
 
     def __gps_sub_callback(self, msg: GPS):
-        self.__gps_sub = msg
+        """Stores the latest GPS data.
+
+        Args:
+            msg (GPS): The GPS data from the physics engine.
+        """
+        self.get_logger().info(
+            f"Received data from {self.gps_sub.topic}: {msg}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
+        self.__gps = msg
 
     @MutuallyExclusiveActionRoutine(action_type=SimRudderActuation)
-    def __rudder_actuation_routine(self, goal_handle: ServerGoalHandle):
-        self.get_logger().info("Beginning rudder actuation")
+    def __rudder_actuation_routine(
+        self, goal_handle: ServerGoalHandle
+    ) -> Optional[SimRudderActuation_Result]:
+        """The rudder actuation action server routine. Given a desired heading as the goal, the
+        rudder is actuated until the desired heading is reached or the action times out.
 
+        Args:
+            goal_handle (ServerGoalHandle): The server goal specified by the client.
+
+        Returns:
+            Optional[SimRudderActuation_Result]: The result message if successful.
+        """
+        self.get_logger().debug("Beginning rudder actuation...")
+
+        # TODO Placeholder loop. Replace with PID ctrl once implemented.
         feedback_msg = SimRudderActuation.Feedback()
         for i in range(Constants.RUDDER_ACTUATION_NUM_LOOP_EXECUTIONS):
             feedback_msg.rudder_angle = float(i)
-            self.get_logger().fatal(f"Server feedback: {i}")
-            self.get_logger().fatal(f"Is Action Active? {self.is_rudder_action_active}")
+            self.get_logger().debug(f"Server feedback: {i}")
+            self.get_logger().debug(f"Is Action Active? {self.is_rudder_action_active}")
             goal_handle.publish_feedback(feedback=feedback_msg)
             self.rudder_action_feedback_rate.sleep()
 
@@ -164,6 +214,10 @@ class LowLevelControlNode(Node):
     @property
     def pub_period(self) -> float:
         return self.get_parameter("pub_period_sec").get_parameter_value().double_value
+
+    @property
+    def gps(self) -> Optional[GPS]:
+        return self.__gps
 
     @property
     def gps_sub(self) -> Subscription:

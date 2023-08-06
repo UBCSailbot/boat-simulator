@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""The ROS node for the physics engine."""
+
 import sys
 from typing import Optional
 
@@ -81,7 +83,7 @@ class PhysicsEngineNode(Node):
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
     def __init_private_attributes(self):
-        """Initializes private attributes of this class that are not initializes anywhere else
+        """Initializes private attributes of this class that are not initialized anywhere else
         during the initialization process.
         """
         # TODO Do we need to worry about the counter overflowing?
@@ -111,7 +113,8 @@ class PhysicsEngineNode(Node):
         in parallel to each other.
 
         If multithreading is disabled: All callbacks are assigned to the same default callback
-        group, and only one callback may execute at a time in a single-threaded manner.
+        group, and only one callback may execute at a time in a single-threaded manner
+        (the ROS2 default).
 
         Learn more about executors and callback groups here:
         https://docs.ros.org/en/humble/Concepts/Intermediate/About-Executors.html#executors
@@ -413,8 +416,10 @@ class PhysicsEngineNode(Node):
             feedback_msg (SimRudderActuation_FeedbackMessage): The feedback message.
         """
         self.__rudder_angle = feedback_msg.feedback.rudder_angle
-        self.get_logger().debug(
-            f"Rudder actuation action reported a rudder angle of {self.__rudder_angle}"
+        self.get_logger().info(
+            f"Received rudder angle of {self.__rudder_angle:.2f} rad from action "
+            + f"{self.rudder_actuation_action_client._action_name}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
     @property
