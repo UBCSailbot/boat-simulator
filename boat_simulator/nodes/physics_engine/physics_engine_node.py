@@ -101,12 +101,19 @@ class PhysicsEngineNode(Node):
         update itself accordingly.
         """
         # TODO Update global YAML file with more configuration parameters and declare them here
+        self.get_logger().debug("Declaring ROS parameters...")
         self.declare_parameters(
             namespace="",
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
             ],
         )
+
+        # TODO Revisit this debug statement. It might get ugly for args with complicated structures
+        all_parameters = self._parameters
+        for name, parameter in all_parameters.items():
+            value_str = str(parameter.value)
+            self.get_logger().debug(f"Got parameter {name} with value {value_str}")
 
     def __init_callback_groups(self):
         """Initializes the callback groups. Whether multithreading is enabled or not will affect
