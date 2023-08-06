@@ -3,16 +3,21 @@ from typing import Callable
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
 
 
+# TODO Devise a better method of making action server callacks mutually exclusive
 class MutuallyExclusiveActionRoutine:
+    """A decorator that prevents multiple instances of an action server routine executing at once,
+    making it mutually exclusive.
+
+    This decorator is only meant to be used inside the `LowLevelControlNode` class.
+    """
+
     def __init__(self, action_type):
         self.__action_type = action_type
 
     def __call__(self, func: Callable):
         def check(obj, *args, **kwargs):
-            obj.get_logger().debug("Checking!!!")
             if self.__is_action_active(obj, func):
                 goal_handle = args[0]
-                obj.get_logger().debug(f"GOAL HANDLER: {goal_handle}")
                 return self.__cancel_goal_request(obj, goal_handle)
             else:
                 return self.__execute_action_routine(obj, func, *args, **kwargs)
@@ -52,7 +57,7 @@ class MutuallyExclusiveActionRoutine:
         if self.__action_type == SimRudderActuation:
             obj._is_rudder_action_active = True
         elif self.__action_type == SimSailTrimTabActuation:
-            obj.__is_sail_action_active = True
+            obj._is_sail_action_active = True
         else:
             obj.get_logger().error(
                 f"Invalid action type {self.__action_type} while setting action active flag"
@@ -62,7 +67,7 @@ class MutuallyExclusiveActionRoutine:
         if self.__action_type == SimRudderActuation:
             obj._is_rudder_action_active = False
         elif self.__action_type == SimSailTrimTabActuation:
-            obj.__is_sail_action_active = False
+            obj._is_sail_action_active = False
         else:
             obj.get_logger().error(
                 f"Invalid action type {self.__action_type} while unsetting action active flag"

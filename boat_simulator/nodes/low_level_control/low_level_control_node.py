@@ -58,7 +58,7 @@ class LowLevelControlNode(Node):
         self.__rudder_angle = 0
         self.__sail_trim_tab_angle = 0
         self._is_rudder_action_active = False
-        self.__is_sail_action_active = False
+        self._is_sail_action_active = False
         self.__gps = None
 
     def __declare_ros_parameters(self):
@@ -209,7 +209,7 @@ class LowLevelControlNode(Node):
 
     @property
     def is_sail_action_active(self) -> bool:
-        return self.__is_sail_action_active
+        return self._is_sail_action_active
 
     @property
     def pub_period(self) -> float:
