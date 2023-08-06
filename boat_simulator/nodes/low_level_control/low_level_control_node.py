@@ -41,6 +41,19 @@ def main(args=None):
 
 
 class LowLevelControlNode(Node):
+    """Performs the low-level contoller emulation for the rudder and sail actuation mechanisms.
+
+    This class uses a multithreaded executor. Refrain from using any synchronous calls within
+    callbacks, or a deadlock is likely to occur.
+
+    Subscriptions:
+        gps_sub (Subscription): Subscribes to a `GPS` message.
+
+    Action Servers:
+        rudder_actuation_action_server (ActionServer): Performs the rudder actuation routine.
+        sail_actuation_action_server (ActionServer): Performs the sail trim tab actuation routine.
+    """
+
     def __init__(self):
         """Initializes an instance of this class."""
         super().__init__("low_level_control_node")
