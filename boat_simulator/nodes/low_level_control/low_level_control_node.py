@@ -8,6 +8,9 @@ import rclpy
 import rclpy.utilities
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
 from custom_interfaces.action._sim_rudder_actuation import SimRudderActuation_Result
+from custom_interfaces.action._sim_sail_trim_tab_actuation import (
+    SimSailTrimTabActuation_Result,
+)
 from custom_interfaces.msg import GPS
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
@@ -85,7 +88,7 @@ class LowLevelControlNode(Node):
         self.get_logger().debug("Initializing callback groups...")
         self.__pub_sub_callback_group = MutuallyExclusiveCallbackGroup()
         self.__rudder_action_callback_group = ReentrantCallbackGroup()
-        self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
+        self.__sail_action_callback_group = ReentrantCallbackGroup()
 
     def __init_feedback_execution_rates(self):
         """Initializes rate objects used in this node to control how often a loop is executed
@@ -99,7 +102,7 @@ class LowLevelControlNode(Node):
             frequency=Constants.RUDDER_ACTUATION_EXECUTION_PERIOD_SEC, clock=self.get_clock()
         )
         self.__sail_action_feedback_rate = self.create_rate(
-            Constants.SAIL_TRIM_TAB_ACTUATION_PERIOD_SEC, clock=self.get_clock()
+            Constants.SAIL_ACTUATION_EXECUTION_PERIOD_SEC, clock=self.get_clock()
         )
 
     def __init_subscriptions(self):
@@ -127,6 +130,13 @@ class LowLevelControlNode(Node):
             action_name=Constants.ACTION_NAMES.RUDDER_ACTUATION,
             execute_callback=self.__rudder_actuation_routine,
             callback_group=self.rudder_action_callback_group,
+        )
+        self.__sail_actuation_action_server = ActionServer(
+            node=self,
+            action_type=SimSailTrimTabActuation,
+            action_name=Constants.ACTION_NAMES.SAIL_ACTUATION,
+            execute_callback=self.__sail_actuation_routine,
+            callback_group=self.sail_action_callback_group,
         )
 
     def __gps_sub_callback(self, msg: GPS):
@@ -160,14 +170,44 @@ class LowLevelControlNode(Node):
         feedback_msg = SimRudderActuation.Feedback()
         for i in range(Constants.RUDDER_ACTUATION_NUM_LOOP_EXECUTIONS):
             feedback_msg.rudder_angle = float(i)
-            self.get_logger().debug(f"Server feedback: {i}")
-            self.get_logger().debug(f"Is Action Active? {self.is_rudder_action_active}")
+            self.get_logger().debug(f"Rudder Action Server feedback: {i}")
+            self.get_logger().debug(f"Is Rudder Action Active? {self.is_rudder_action_active}")
             goal_handle.publish_feedback(feedback=feedback_msg)
             self.rudder_action_feedback_rate.sleep()
 
         goal_handle.succeed()
 
         result = SimRudderActuation.Result()
+        result.remaining_angular_distance = 0.0
+        return result
+
+    @MutuallyExclusiveActionRoutine(action_type=SimSailTrimTabActuation)
+    def __sail_actuation_routine(
+        self, goal_handle: ServerGoalHandle
+    ) -> Optional[SimSailTrimTabActuation_Result]:
+        """The sail actuation action server routine. Given a desired angular position as the goal,
+        the trim tab is actuated until the desired position is reached or the action times out.
+
+        Args:
+            goal_handle (ServerGoalHandle): The server goal specified by the client.
+
+        Returns:
+            Optional[SimSailTrimTabActuation_Result]: The result message if successful.
+        """
+        self.get_logger().debug("Beginning sail actuation...")
+
+        # TODO Placeholder loop. Replace with sail ctrl once implemented.
+        feedback_msg = SimSailTrimTabActuation.Feedback()
+        for i in range(Constants.SAIL_ACTUATION_NUM_LOOP_EXECUTIONS):
+            feedback_msg.current_angular_position = float(i)
+            self.get_logger().debug(f"Sail Action Server feedback: {i}")
+            self.get_logger().debug(f"Is Sail Action Active? {self.is_sail_action_active}")
+            goal_handle.publish_feedback(feedback=feedback_msg)
+            self.sail_action_feedback_rate.sleep()
+
+        goal_handle.succeed()
+
+        result = SimSailTrimTabActuation.Result()
         result.remaining_angular_distance = 0.0
         return result
 
