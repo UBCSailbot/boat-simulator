@@ -6,6 +6,9 @@ from typing import Optional
 import rclpy
 import rclpy.utilities
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
+from custom_interfaces.action._sim_rudder_actuation import (
+    SimRudderActuation_FeedbackMessage,
+)
 from custom_interfaces.msg import (
     GPS,
     DesiredHeading,
@@ -40,7 +43,7 @@ def main(args=None):
     rclpy.shutdown()
 
 
-def is_multithreading_enabled():
+def is_multithreading_enabled() -> bool:
     try:
         is_multithreading_enabled_index = sys.argv.index(Constants.MULTITHREADING_CLI_ARG_NAME) + 1
         is_multithreading_enabled = sys.argv[is_multithreading_enabled_index] == "true"
@@ -57,12 +60,17 @@ def get_executor(is_multithreading_enabled: bool) -> Executor:
 
 
 class PhysicsEngineNode(Node):
-    def __init__(self, multithreading_enabled: bool = False):
+    def __init__(self, multithreading_enabled: bool):
+        """Initializes an instance of this class.
+
+        Args:
+            multithreading_enabled (bool): True if this node uses a multithreaded
+            executor, and false for a single threaded executor.
+        """
         super().__init__(node_name="physics_engine_node")
         self.__is_multithreading_enabled = multithreading_enabled
 
         self.get_logger().debug("Initializing node...")
-
         self.__init_private_attributes()
         self.__declare_ros_parameters()
         self.__init_callback_groups()
@@ -70,10 +78,12 @@ class PhysicsEngineNode(Node):
         self.__init_publishers()
         self.__init_action_clients()
         self.__init_timer_callbacks()
-
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
     def __init_private_attributes(self):
+        """Initializes private attributes of this class that are not initializes anywhere else
+        during the initialization process.
+        """
         # TODO Do we need to worry about the counter overflowing?
         self.__publish_counter = 0
         self.__rudder_angle = 0
@@ -81,6 +91,10 @@ class PhysicsEngineNode(Node):
         self.__desired_heading = None
 
     def __declare_ros_parameters(self):
+        """Declares ROS parameters from the global configuration file that will be used in this
+        node. This node will monitor for any changes to these parameters during execution and will
+        update itself accordingly.
+        """
         # TODO Update global YAML file with more configuration parameters and declare them here
         self.declare_parameters(
             namespace="",
@@ -90,6 +104,19 @@ class PhysicsEngineNode(Node):
         )
 
     def __init_callback_groups(self):
+        """Initializes the callback groups. Whether multithreading is enabled or not will affect
+        how callbacks are executed.
+
+        If multithreading is enabled: Callbacks belonging to different callback groups may execute
+        in parallel to each other.
+
+        If multithreading is disabled: All callbacks are assigned to the same default callback
+        group, and only one callback may execute at a time in a single-threaded manner.
+
+        Learn more about executors and callback groups here:
+        https://docs.ros.org/en/humble/Concepts/Intermediate/About-Executors.html#executors
+        """
+        # TODO Consider if data to each topic should be published in parallel or synchronously
         if self.is_multithreading_enabled:
             self.get_logger().debug(
                 "Multithreading enabled. Initializing multiple callback groups"
@@ -108,8 +135,12 @@ class PhysicsEngineNode(Node):
             self.__sail_action_callback_group = self.default_callback_group
 
     def __init_subscriptions(self):
+        """Initializes the subscriptions of this node. Subscriptions pull data from other ROS
+        topics for further usage in this node. Data is pulled from subscriptions periodically via
+        callbacks, which are registered upon subscription initialization.
+        """
+        # TODO Add subscription to controller when implemented
         self.get_logger().debug("Initializing subscriptions...")
-
         self.__desired_heading_sub = self.create_subscription(
             msg_type=DesiredHeading,
             topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.DESIRED_HEADING,
@@ -118,11 +149,11 @@ class PhysicsEngineNode(Node):
             callback_group=self.sub_callback_group,
         )
 
-        self.get_logger().debug("Done initializing subscriptions...")
-
     def __init_publishers(self):
+        """Initializes the publishers of this node. Publishers update ROS topics so that other ROS
+        nodes in the system can utilize the data produced by this node.
+        """
         self.get_logger().debug("Initializing publishers...")
-
         self.__gps_pub = self.create_publisher(
             msg_type=GPS,
             topic=Constants.PHYSICS_ENGINE_PUBLISHERS.GPS,
@@ -139,11 +170,12 @@ class PhysicsEngineNode(Node):
             qos_profile=Constants.QOS_DEPTH,
         )
 
-        self.get_logger().debug("Done initializing publishers...")
-
     def __init_action_clients(self):
+        """Initializes the action clients of this node. Action clients initiate requests to the
+        action server to perform longer running tasks like rudder actuation, sail actuation, etc.
+        while also periodically receiving feedback from the action server as it completes its task.
+        """
         self.get_logger().debug("Initializing action clients...")
-
         self.__rudder_actuation_action_client = ActionClient(
             node=self,
             action_type=SimRudderActuation,
@@ -157,16 +189,20 @@ class PhysicsEngineNode(Node):
             callback_group=self.sail_action_callback_group,
         )
 
-        self.get_logger().debug("Done initializing action clients...")
-
     def __init_timer_callbacks(self):
+        """Initializes timer callbacks of this node. Timer callbacks are executed periodically with
+        a specified execution frequency.
+        """
         self.get_logger().debug("Initializing timer callbacks...")
 
+        # Publishing data to ROS topics
         self.create_timer(
             timer_period_sec=self.pub_period,
             callback=self.__publish,
             callback_group=self.pub_callback_group,
         )
+
+        # Requesting a rudder actuation
         self.create_timer(
             timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
             callback=self.__rudder_action_send_goal,
@@ -175,20 +211,18 @@ class PhysicsEngineNode(Node):
 
         # TODO Add timer for sail action callback
 
-        self.get_logger().debug("Done initializing timer callbacks...")
-
     def __publish(self):
-        # TODO Get updated boat state and publish
-        # TODO Get wind sensor data and publish
-
+        """Synchronously publishes data to all publishers at once."""
+        # TODO Get updated boat state and publish (should this be separate from publishing?)
+        # TODO Get wind sensor data and publish (should this be separate from publishing?)
         self.get_logger().info("Publishing simulated sensor and kinematics data")
         self.__publish_gps()
         self.__publish_wind_sensors()
         self.__publish_kinematics()
-
         self.__publish_counter += 1
 
     def __publish_gps(self):
+        """Publishes mock GPS data."""
         # TODO Update to publish real data
         msg = GPS()
         msg.lat_lon.latitude = 0.0
@@ -200,6 +234,7 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(f"Publishing to {self.gps_pub.topic}: {msg}")
 
     def __publish_wind_sensors(self):
+        """Publishes mock wind sensor data."""
         # TODO Update to publish real data
         windSensor1 = WindSensor()
         windSensor1.speed.speed = 0.0
@@ -216,6 +251,7 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(f"Publishing to {self.wind_sensors_pub.topic}: {msg}")
 
     def __publish_kinematics(self):
+        """Publishes the kinematics data of the simulated boat."""
         # TODO Update to publish real data
         msg = SimWorldState()
 
@@ -288,21 +324,33 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}")
 
     def __desired_heading_sub_callback(self, msg: DesiredHeading):
+        """Stores the latest desired heading data.
+
+        Args:
+            msg (DesiredHeading): The desired heading data from local pathfinding.
+        """
         self.get_logger().info(f"Received data from {self.desired_heading_sub.topic}: {msg}")
         self.__desired_heading = msg
 
     @require_all_subs_active
     def __rudder_action_send_goal(self):
+        """Asynchronously sends a goal request to the rudder actuation action server
+        and registers a callback to execute when the server routine is complete.
+
+        All subscriptions of this node must be active for a successful action execution.
+        """
         self.get_logger().debug("Initiating goal request for rudder actuation action")
 
+        # Create the goal message
         goal_msg = SimRudderActuation.Goal()
         goal_msg.desired_heading = self.desired_heading
 
-        is_timed_out = not self.rudder_actuation_action_client.wait_for_server(
+        # Wait for the action server to be ready (the low-level control node)
+        is_request_timed_out = not self.rudder_actuation_action_client.wait_for_server(
             timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
         )
 
-        if is_timed_out:
+        if is_request_timed_out:
             self.get_logger().warn(
                 "Rudder actuation action goal request timed out after "
                 + f"{Constants.ACTION_SEND_GOAL_TIMEOUT_SEC} seconds. Aborting..."
@@ -315,6 +363,12 @@ class PhysicsEngineNode(Node):
             self.get_logger().debug("Completed goal request for rudder actuation action")
 
     def __rudder_action_goal_response_callback(self, future: Future):
+        """Prepares the execution process after the rudder action routine is complete. This
+        function executes when the rudder actuation goal request has been acknowledged.
+
+        Args:
+            future (Future): The outcome of the goal request in the future.
+        """
         goal_handle: Optional[ClientGoalHandle] = future.result()
         if (not goal_handle) or (not goal_handle.accepted):
             self.get_logger().warn("Attempted to send rudder actuation goal, but it was rejected")
@@ -324,6 +378,11 @@ class PhysicsEngineNode(Node):
         rudder_get_result_future.add_done_callback(self.__rudder_action_get_result_callback)
 
     def __rudder_action_get_result_callback(self, future: Future):
+        """The execution process after the rudder action routine is complete.
+
+        Args:
+            future (Future): The outcome of the rudder action routine in the future.
+        """
         result = future.result().result
         self.get_logger().debug(
             "Rudder actuation action finished with a heading residual of "
@@ -331,7 +390,13 @@ class PhysicsEngineNode(Node):
             + f"rudder angle of {self.__rudder_angle} radians"
         )
 
-    def __rudder_action_feedback_callback(self, feedback_msg):
+    def __rudder_action_feedback_callback(self, feedback_msg: SimRudderActuation_FeedbackMessage):
+        """Updates the rudder angle as the rudder action routine executes. As the action routine
+        publishes feedback, this function is executed.
+
+        Args:
+            feedback_msg (SimRudderActuation_FeedbackMessage): The feedback message.
+        """
         self.__rudder_angle = feedback_msg.feedback.rudder_angle
         self.get_logger().debug(
             f"Rudder actuation action reported a rudder angle of {self.__rudder_angle}"
