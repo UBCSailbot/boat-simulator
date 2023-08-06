@@ -215,7 +215,10 @@ class PhysicsEngineNode(Node):
         """Synchronously publishes data to all publishers at once."""
         # TODO Get updated boat state and publish (should this be separate from publishing?)
         # TODO Get wind sensor data and publish (should this be separate from publishing?)
-        self.get_logger().info("Publishing simulated sensor and kinematics data")
+        self.get_logger().info(
+            "Publishing simulated sensor and kinematics data",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
         self.__publish_gps()
         self.__publish_wind_sensors()
         self.__publish_kinematics()
@@ -231,7 +234,10 @@ class PhysicsEngineNode(Node):
         msg.heading.heading = 0.0
 
         self.gps_pub.publish(msg)
-        self.get_logger().info(f"Publishing to {self.gps_pub.topic}: {msg}")
+        self.get_logger().info(
+            f"Publishing to {self.gps_pub.topic}: {msg}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
 
     def __publish_wind_sensors(self):
         """Publishes mock wind sensor data."""
@@ -248,7 +254,10 @@ class PhysicsEngineNode(Node):
         msg.wind_sensors = [windSensor1, windSensor2]
 
         self.wind_sensors_pub.publish(msg)
-        self.get_logger().info(f"Publishing to {self.wind_sensors_pub.topic}: {msg}")
+        self.get_logger().info(
+            f"Publishing to {self.wind_sensors_pub.topic}: {msg}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
 
     def __publish_kinematics(self):
         """Publishes the kinematics data of the simulated boat."""
@@ -321,7 +330,10 @@ class PhysicsEngineNode(Node):
 
         # TODO Break down this ROS log because it is too large
         # self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}: {msg}")
-        self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}")
+        self.get_logger().info(
+            f"Publishing to {self.kinematics_pub.topic}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
 
     def __desired_heading_sub_callback(self, msg: DesiredHeading):
         """Stores the latest desired heading data.
@@ -329,7 +341,10 @@ class PhysicsEngineNode(Node):
         Args:
             msg (DesiredHeading): The desired heading data from local pathfinding.
         """
-        self.get_logger().info(f"Received data from {self.desired_heading_sub.topic}: {msg}")
+        self.get_logger().info(
+            f"Received data from {self.desired_heading_sub.topic}: {msg}",
+            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+        )
         self.__desired_heading = msg
 
     @require_all_subs_active

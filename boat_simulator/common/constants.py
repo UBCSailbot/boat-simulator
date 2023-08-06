@@ -32,6 +32,8 @@ class PhysicsEnginePublisherTopics:
 ACTION_NAMES = Actions()
 ACTION_SEND_GOAL_TIMEOUT_SEC = 2
 
+INFO_LOG_THROTTLE_PERIOD_SEC = 2
+
 LOW_LEVEL_CTRL_SUBSCRIPTIONS = LowLevelControlSubscriptionTopics()
 
 MULTITHREADING_CLI_ARG_NAME = "--enable-multithreading"
