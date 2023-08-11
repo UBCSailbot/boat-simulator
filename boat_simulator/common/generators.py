@@ -14,6 +14,7 @@ class VectorGenerator(ABC):
 
     Attributes:
         seed (int): The seed used to seed the random number generator.
+        rng (?): The seeded random number generator
     """
 
     def __init__(self, seed: int = 0):
@@ -24,6 +25,7 @@ class VectorGenerator(ABC):
             seed (int, optional): The seed used to seed the random number generator. Defaults to 0.
         """
         self.__seed = seed
+        self.__rng = np.random.default_rng(seed=seed)
 
     def next(self) -> ArrayLike:
         """Generates the next random array in the sequence. This function acts as an alias to the
@@ -46,6 +48,10 @@ class VectorGenerator(ABC):
     @property
     def seed(self) -> int:
         return self.__seed
+
+    @property
+    def rng(self):
+        return self.__rng
 
 
 class GaussianGenerator(VectorGenerator):
@@ -117,7 +123,7 @@ class MVGaussianGenerator(VectorGenerator):
         self.next()
 
     def _next(self) -> ArrayLike:
-        self.__value = np.random.multivariate_normal(self.mean, self.cov)
+        self.__value = self.rng.multivariate_normal(self.mean, self.cov)
         return self.__value
 
     @property
