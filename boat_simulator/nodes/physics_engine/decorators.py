@@ -1,3 +1,5 @@
+"""Decorator functions used in the physics engine."""
+
 from typing import Callable
 
 

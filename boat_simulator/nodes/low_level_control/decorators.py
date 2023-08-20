@@ -1,3 +1,5 @@
+"""Decorator functions used in the low level control node."""
+
 from typing import Callable
 
 from custom_interfaces.action import SimRudderActuation, SimSailTrimTabActuation
