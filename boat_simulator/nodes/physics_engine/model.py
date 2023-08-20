@@ -1,94 +1,68 @@
-from boat_simulator.common import utils
-from boat_simulator.boat_simulator.nodes.physics_engine.computation import BoatComputation
-from boat_simulator.common.types import Scalar
+"""This module represents the state of the boat at a given step in time."""
+
+from typing import Tuple
 from numpy.typing import ArrayLike
+from boat_simulator.boat_simulator.common.types import Scalar
+from boat_simulator.boat_simulator.nodes.physics_engine.kinematics_computation \
+    import BoatKinematics
+from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
 import numpy as np
-import boat_simulator.common.constants as constants
 
 
 class BoatState:
     # Private class member defaults
-    __global_position = np.zeros(shape=(3,), dtype=np.float32)
-    __relative_velocity = np.zeros(shape=(3,), dtype=np.float32)
-    __relative_acceleration = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_position = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_velocity = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_acceleration = np.zeros(shape=(3,), dtype=np.float32)
     __inertia = np.identity(n=3, dtype=np.float32)
     __inertia_inverse = np.identity(n=3, dtype=np.float32)
     __boat_mass = 1.0
     __timestep = 1.0
-    __boat_computation = BoatComputation(__timestep)
+    __kinematics_computation = BoatKinematics(__timestep)
 
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
         self.__timestep = timestep
         self.__boat_mass = mass
         self.__inertia = np.array(inertia, dtype=np.float32)
         self.__inertia_inverse = np.linalg.inv(self.__inertia)
-        self.__boat_computation = BoatComputation(self.__timestep)
+        self.__kinematics_computation = BoatKinematics(self.__timestep)
 
-    def step(self, wind_vel: ArrayLike) -> None:
-        net_force, net_torque = self.__boat_computation.compute_net_force_and_torque(wind_vel)
+    def compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+        raise NotImplementedError()
 
-        next_relative_acceleration = self.__boat_computation.compute_next_relative_acceleration(
-            self.boat_mass, net_force
-        )
-        next_ang_acceleration = self.__boat_computation.compute_next_ang_acceleration(self.inertia_inverse, net_torque)
-
-        next_relative_velocity = self.__boat_computation.compute_next_relative_velocity(
-            self.relative_velocity, next_relative_acceleration
-        )
-        next_ang_velocity = self.__boat_computation.compute_next_ang_velocity(
-            self.angular_velocity, next_ang_acceleration
-        )
-
-        next_global_position = self.__boat_computation.compute_next_position(
-            self.global_position, self.global_velocity, self.global_acceleration
-        )
-
-        self.__relative_velocity = next_relative_velocity
-        self.__relative_acceleration = next_relative_acceleration
-        self.__angular_velocity = next_ang_velocity
-        self.__angular_acceleration = next_ang_acceleration
-        self.__global_position = next_global_position
+    # Updates the kinematics data and returns the kinematics data objects
+    def step(self, net_force: ArrayLike, net_torque: ArrayLike
+             ) -> Tuple[KinematicsData, KinematicsData]:
+        return self.__kinematics_computation.step(net_force, net_torque)
 
     @property
     def global_position(self) -> ArrayLike:
-        return self.__global_position
+        return self.__kinematics_computation.global_data.cartesian_position
 
     @property
     def global_velocity(self) -> ArrayLike:
-        yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
-        )
-        return self.relative_velocity * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
+        return self.__kinematics_computation.global_data.cartesian_velocity
 
     @property
     def global_acceleration(self) -> ArrayLike:
-        yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
-        )
-        return self.relative_acceleration * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
+        self.__kinematics_computation.global_data.cartesian_acceleration
 
     @property
     def relative_velocity(self) -> ArrayLike:
-        return self.__relative_velocity
+        return self.__kinematics_computation.relative_data.cartesian_velocity
 
     @property
     def relative_acceleration(self) -> ArrayLike:
-        return self.__relative_acceleration
+        return self.__kinematics_computation.relative_data.cartesian_acceleration
 
     @property
     def angular_position(self) -> ArrayLike:
-        return self.__angular_position
+        return self.__kinematics_computation.relative_data.angular_position
 
     @property
     def angular_velocity(self) -> ArrayLike:
-        return self.__angular_velocity
+        return self.__kinematics_computation.relative_data.angular_velocity
 
     @property
     def angular_acceleration(self) -> ArrayLike:
-        return self.__angular_acceleration
+        return self.__kinematics_computation.relative_data.angular_position
 
     @property
     def inertia(self) -> ArrayLike:
