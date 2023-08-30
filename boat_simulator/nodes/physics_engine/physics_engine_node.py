@@ -35,7 +35,8 @@ from rclpy.subscription import Subscription
 
 import boat_simulator.common.constants as Constants
 from boat_simulator.common.types import Scalar
-from boat_simulator.nodes.physics_engine.decorators import require_all_subs_active
+
+from .decorators import require_all_subs_active
 
 
 def main(args=None):
@@ -303,57 +304,21 @@ class PhysicsEngineNode(Node):
         msg.global_gps.speed.speed = 0.0
         msg.global_gps.heading.heading = 0.0
 
-        msg.global_reference_kinematics.pose.position.x = 0.0
-        msg.global_reference_kinematics.pose.position.y = 0.0
-        msg.global_reference_kinematics.pose.position.z = 0.0
-        msg.global_reference_kinematics.pose.orientation.x = 0.0
-        msg.global_reference_kinematics.pose.orientation.y = 0.0
-        msg.global_reference_kinematics.pose.orientation.z = 0.0
-        msg.global_reference_kinematics.pose.orientation.w = 1.0
-        msg.global_reference_kinematics.velocity.linear.x = 0.0
-        msg.global_reference_kinematics.velocity.linear.y = 0.0
-        msg.global_reference_kinematics.velocity.linear.z = 0.0
-        msg.global_reference_kinematics.velocity.angular.x = 0.0
-        msg.global_reference_kinematics.velocity.angular.y = 0.0
-        msg.global_reference_kinematics.velocity.angular.z = 0.0
-        msg.global_reference_kinematics.acceleration.linear.x = 0.0
-        msg.global_reference_kinematics.acceleration.linear.y = 0.0
-        msg.global_reference_kinematics.acceleration.linear.z = 0.0
-        msg.global_reference_kinematics.acceleration.angular.x = 0.0
-        msg.global_reference_kinematics.acceleration.angular.y = 0.0
-        msg.global_reference_kinematics.acceleration.angular.z = 0.0
-        msg.global_reference_kinematics.net_wrench.force.x = 0.0
-        msg.global_reference_kinematics.net_wrench.force.y = 0.0
-        msg.global_reference_kinematics.net_wrench.force.z = 0.0
-        msg.global_reference_kinematics.net_wrench.torque.x = 0.0
-        msg.global_reference_kinematics.net_wrench.torque.y = 0.0
-        msg.global_reference_kinematics.net_wrench.torque.z = 0.0
+        msg.global_pose.position.x = 0.0
+        msg.global_pose.position.y = 0.0
+        msg.global_pose.position.z = 0.0
+        msg.global_pose.orientation.x = 0.0
+        msg.global_pose.orientation.y = 0.0
+        msg.global_pose.orientation.z = 0.0
+        msg.global_pose.orientation.w = 1.0
 
-        msg.relative_reference_kinematics.pose.position.x = 0.0
-        msg.relative_reference_kinematics.pose.position.y = 0.0
-        msg.relative_reference_kinematics.pose.position.z = 0.0
-        msg.relative_reference_kinematics.pose.orientation.x = 0.0
-        msg.relative_reference_kinematics.pose.orientation.y = 0.0
-        msg.relative_reference_kinematics.pose.orientation.z = 0.0
-        msg.relative_reference_kinematics.pose.orientation.w = 1.0
-        msg.relative_reference_kinematics.velocity.linear.x = 0.0
-        msg.relative_reference_kinematics.velocity.linear.y = 0.0
-        msg.relative_reference_kinematics.velocity.linear.z = 0.0
-        msg.relative_reference_kinematics.velocity.angular.x = 0.0
-        msg.relative_reference_kinematics.velocity.angular.y = 0.0
-        msg.relative_reference_kinematics.velocity.angular.z = 0.0
-        msg.relative_reference_kinematics.acceleration.linear.x = 0.0
-        msg.relative_reference_kinematics.acceleration.linear.y = 0.0
-        msg.relative_reference_kinematics.acceleration.linear.z = 0.0
-        msg.relative_reference_kinematics.acceleration.angular.x = 0.0
-        msg.relative_reference_kinematics.acceleration.angular.y = 0.0
-        msg.relative_reference_kinematics.acceleration.angular.z = 0.0
-        msg.relative_reference_kinematics.net_wrench.force.x = 0.0
-        msg.relative_reference_kinematics.net_wrench.force.y = 0.0
-        msg.relative_reference_kinematics.net_wrench.force.z = 0.0
-        msg.relative_reference_kinematics.net_wrench.torque.x = 0.0
-        msg.relative_reference_kinematics.net_wrench.torque.y = 0.0
-        msg.relative_reference_kinematics.net_wrench.torque.z = 0.0
+        msg.wind_velocity.x = 0.0
+        msg.wind_velocity.y = 0.0
+        msg.wind_velocity.z = 0.0
+
+        msg.current_velocity.x = 0.0
+        msg.current_velocity.y = 0.0
+        msg.current_velocity.z = 0.0
 
         sec, nanosec = divmod(self.pub_period * self.publish_counter, 1)
         msg.header.stamp.sec = int(sec)
