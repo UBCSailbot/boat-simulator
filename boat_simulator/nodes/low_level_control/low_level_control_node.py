@@ -15,12 +15,7 @@ from custom_interfaces.msg import GPS
 from rclpy.action import ActionServer
 from rclpy.action.server import ServerGoalHandle
 from rclpy.executors import MultiThreadedExecutor
-from rclpy.node import (
-    CallbackGroup,
-    MutuallyExclusiveCallbackGroup,
-    Node,
-    ReentrantCallbackGroup,
-)
+from rclpy.node import CallbackGroup, MutuallyExclusiveCallbackGroup, Node
 from rclpy.subscription import Subscription
 from rclpy.timer import Rate
 
@@ -107,8 +102,8 @@ class LowLevelControlNode(Node):
         """
         self.get_logger().debug("Initializing callback groups...")
         self.__pub_sub_callback_group = MutuallyExclusiveCallbackGroup()
-        self.__rudder_action_callback_group = ReentrantCallbackGroup()
-        self.__sail_action_callback_group = ReentrantCallbackGroup()
+        self.__rudder_action_callback_group = MutuallyExclusiveCallbackGroup()
+        self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
 
     def __init_feedback_execution_rates(self):
         """Initializes rate objects used in this node to control how often a loop is executed
