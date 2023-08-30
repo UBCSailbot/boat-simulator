@@ -14,8 +14,6 @@ from launch.substitutions import LaunchConfiguration
 
 # Local launch arguments and constants
 PACKAGE_NAME = "boat_simulator"
-PHYSICS_ENGINE_NODE_NAME = "physics_engine_node"
-LOW_LEVEL_CONTROL_NODE_NAME = "low_level_control_node"
 
 # Add args with DeclareLaunchArguments object(s) and utilize in setup_launch()
 LOCAL_LAUNCH_ARGUMENTS = [
@@ -54,7 +52,7 @@ def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
         List[LaunchDescriptionEntity]: List of global launch argument objects.
     """
     global_main_launch = os.path.join(
-        os.getenv("ROS_WORKSPACE"), "src", "global_launch", "main_launch.py"
+        os.getenv("ROS_WORKSPACE"), "global_launch", "main_launch.py"
     )
     spec = importlib.util.spec_from_file_location("global_launch", global_main_launch)
     module = importlib.util.module_from_spec(spec)
@@ -100,10 +98,11 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
     Returns:
         Node: The node object that launches the physics engine node.
     """
+    node_name = "physics_engine_node"
     ros_parameters = [LaunchConfiguration("config").perform(context)]
     ros_arguments = [
         "--log-level",
-        [f"{PHYSICS_ENGINE_NODE_NAME}:=", LaunchConfiguration("log_level")],
+        [f"{node_name}:=", LaunchConfiguration("log_level")],
     ]
     local_arguments = [
         Constants.MULTITHREADING_CLI_ARG_NAME,
@@ -112,8 +111,8 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
 
     node = Node(
         package=PACKAGE_NAME,
-        executable=PHYSICS_ENGINE_NODE_NAME,
-        name=PHYSICS_ENGINE_NODE_NAME,
+        executable=node_name,
+        name=node_name,
         parameters=ros_parameters,
         ros_arguments=ros_arguments,
         arguments=local_arguments,
@@ -131,10 +130,11 @@ def get_low_level_control_description(context: LaunchContext) -> Node:
     Returns:
         Node: The node object that launches the low level control node.
     """
+    node_name = "low_level_control_node"
     ros_parameters = [LaunchConfiguration("config").perform(context)]
     ros_arguments = [
         "--log-level",
-        [f"{LOW_LEVEL_CONTROL_NODE_NAME}:=", LaunchConfiguration("log_level")],
+        [f"{node_name}:=", LaunchConfiguration("log_level")],
     ]
     local_arguments = [
         Constants.MULTITHREADING_CLI_ARG_NAME,
@@ -143,8 +143,8 @@ def get_low_level_control_description(context: LaunchContext) -> Node:
 
     node = Node(
         package=PACKAGE_NAME,
-        executable=LOW_LEVEL_CONTROL_NODE_NAME,
-        name=LOW_LEVEL_CONTROL_NODE_NAME,
+        executable=node_name,
+        name=node_name,
         parameters=ros_parameters,
         ros_arguments=ros_arguments,
         arguments=local_arguments,
