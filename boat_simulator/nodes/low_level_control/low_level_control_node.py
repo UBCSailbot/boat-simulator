@@ -162,7 +162,7 @@ class LowLevelControlNode(Node):
             msg (GPS): The GPS data from the physics engine.
         """
         self.get_logger().info(
-            f"Received data from {self.gps_sub.topic}: {msg}",
+            f"Received data from {self.gps_sub.topic}",
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
         self.__gps = msg
