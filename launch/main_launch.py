@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 
 import boat_simulator.common.constants as Constants
 from launch import LaunchDescription, LaunchDescriptionEntity
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.launch_context import LaunchContext
 from launch.substitutions import LaunchConfiguration
 
@@ -25,6 +25,9 @@ LOCAL_LAUNCH_ARGUMENTS = [
     )
 ]
 
+# Add vars with SetEnvironmentVariable object(s)
+LOCAL_ENVIRONMENT_VARS = []
+
 
 def generate_launch_description() -> LaunchDescription:
     """The launch file entry point. Generates the launch description for the `boat_simulator`
@@ -33,13 +36,13 @@ def generate_launch_description() -> LaunchDescription:
     Returns:
         LaunchDescription: The launch description.
     """
-    global_launch_arguments = get_global_launch_arguments()
-    local_launch_arguments = LOCAL_LAUNCH_ARGUMENTS
+    global_launch_arguments, global_environment_vars = get_global_launch_arguments()
     return LaunchDescription(
         [
             *global_launch_arguments,
-            *local_launch_arguments,
-            OpaqueFunction(function=set_environment_variables),
+            *global_environment_vars,
+            *LOCAL_LAUNCH_ARGUMENTS,
+            *LOCAL_ENVIRONMENT_VARS,
             OpaqueFunction(function=setup_launch),
         ]
     )
@@ -58,19 +61,8 @@ def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     global_launch_arguments = module.GLOBAL_LAUNCH_ARGUMENTS
-    return global_launch_arguments
-
-
-def set_environment_variables(context: LaunchContext) -> List[SetEnvironmentVariable]:
-    """Sets environment variables for the `boat_simulator` package.
-
-    Args:
-        context (LaunchContext): The current launch context.
-
-    Returns:
-        List[SetEnvironmentVariable]: List of environment variables to be set.
-    """
-    return [SetEnvironmentVariable("RCUTILS_COLORIZED_OUTPUT", "1")]
+    global_environment_vars = module.ENVIRONMENT_VARIABLES
+    return global_launch_arguments, global_environment_vars
 
 
 def setup_launch(context: LaunchContext) -> List[LaunchDescriptionEntity]:
