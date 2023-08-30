@@ -3,6 +3,8 @@
 from typing import Callable
 
 
+# TODO Pull all subscriptions at once rather than one at a time to avoid needing to update in the
+# future if more subscriptions are added
 def require_all_subs_active(func: Callable):
     """A decorator that asserts all subscriptions must be active in a node in order for a the
     wrapped function to be executed. This decorator is only meant to be used inside the
