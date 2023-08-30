@@ -24,12 +24,7 @@ from custom_interfaces.msg import (
 from rclpy.action import ActionClient
 from rclpy.action.client import ClientGoalHandle, Future
 from rclpy.executors import Executor, MultiThreadedExecutor, SingleThreadedExecutor
-from rclpy.node import (
-    CallbackGroup,
-    MutuallyExclusiveCallbackGroup,
-    Node,
-    ReentrantCallbackGroup,
-)
+from rclpy.node import CallbackGroup, MutuallyExclusiveCallbackGroup, Node
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 
@@ -151,7 +146,7 @@ class PhysicsEngineNode(Node):
                 "Multithreading enabled. Initializing multiple callback groups"
             )
             self.__pub_callback_group = MutuallyExclusiveCallbackGroup()
-            self.__sub_callback_group = ReentrantCallbackGroup()
+            self.__sub_callback_group = MutuallyExclusiveCallbackGroup()
             self.__rudder_action_callback_group = MutuallyExclusiveCallbackGroup()
             self.__sail_action_callback_group = MutuallyExclusiveCallbackGroup()
         else:
@@ -327,10 +322,8 @@ class PhysicsEngineNode(Node):
 
         self.kinematics_pub.publish(msg)
 
-        # TODO Break down this ROS log because it is too large
-        # self.get_logger().info(f"Publishing to {self.kinematics_pub.topic}: {msg}")
         self.get_logger().info(
-            f"Publishing to {self.kinematics_pub.topic}",
+            f"Publishing to {self.kinematics_pub.topic}: {msg}",
             throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
         )
 
