@@ -55,7 +55,7 @@ def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
         List[LaunchDescriptionEntity]: List of global launch argument objects.
     """
     global_main_launch = os.path.join(
-        os.getenv("ROS_WORKSPACE"), "global_launch", "main_launch.py"
+        os.getenv("ROS_WORKSPACE"), "src", "global_launch", "main_launch.py"
     )
     spec = importlib.util.spec_from_file_location("global_launch", global_main_launch)
     module = importlib.util.module_from_spec(spec)
