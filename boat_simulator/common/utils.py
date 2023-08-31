@@ -1,7 +1,8 @@
 """Useful functions that could be used anywhere in the boat simulator package."""
 
-from boat_simulator.common.types import Scalar
 import math
+
+from boat_simulator.common.types import Scalar
 
 
 def rad_to_degrees(angle: Scalar) -> Scalar:
@@ -56,31 +57,25 @@ def bound_to_360(angle: Scalar, isDegrees: bool = True) -> Scalar:
     raise NotImplementedError()
 
 
-def symmetric_clockwise_angle_to_true_bearing(angle: Scalar, isDegrees: bool = True) -> Scalar:
-    """Converts an angle in a symmetric clockwise-positive system (angles range from [-180, 180))
-    to a true bearing value (angles range from [0, 360), and is also a clockwise-positive system).
+def enu_heading_to_ned_heading(enu_heading: Scalar) -> Scalar:
+    """Converts a heading from ENU to NED.
 
     Args:
-        `angle` (Scalar): Angle to be converted.
-        `isDegrees` (bool, optional): True if the input is in degrees, and false for radians.
-            Defaults to True.
+        `enu_heading` (Scalar): Heading in ENU.
 
     Returns:
-        Scalar: The true bearing equivalent of the input angle.
+        Scalar: Heading in NED.
     """
     raise NotImplementedError()
 
 
-def true_bearing_to_symmetric_clockwise_angle(bearing: Scalar, isDegrees: bool = True) -> Scalar:
-    """Converts a true bearing value (angles range from [0, 360), and is also a clockwise-positive
-    system) to a symmetric clockwise-positive system (angles range from [-180, 180)).
+def ned_heading_to_enu_heading(ned_heading: Scalar) -> Scalar:
+    """Converts a heading from NED to ENU.
 
     Args:
-        `bearing` (Scalar): The true bearing to be converted.
-        `isDegrees` (bool, optional): True if the input is in degrees, and false for radians.
-            Defaults to True.
+        `ned_heading` (Scalar): Heading in NED.
 
     Returns:
-        Scalar: The symmetric angle equivalent of the input bearing.
+        Scalar: Heading in ENU.
     """
     raise NotImplementedError()

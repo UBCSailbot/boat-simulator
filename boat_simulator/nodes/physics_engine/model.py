@@ -1,9 +1,13 @@
+"""Logic that models the physics of the boat."""
+
+from typing import Tuple
+
+import numpy as np
+from numpy.typing import ArrayLike
+
+import boat_simulator.common.constants as constants
 from boat_simulator.common import utils
 from boat_simulator.common.types import Scalar
-from typing import Tuple
-from numpy.typing import ArrayLike
-import numpy as np
-import boat_simulator.common.constants as constants
 
 
 class BoatState:
