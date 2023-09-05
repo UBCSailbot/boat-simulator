@@ -7,11 +7,9 @@ import numpy as np
 
 @dataclass
 class KinematicsData:
-    cartesian_position: ArrayLike = field(default_factory=lambda: np.zeros(3, dtype=np.float32))
-    cartesian_velocity: ArrayLike = field(default_factory=lambda: np.zeros(3, dtype=np.float32))
-    cartesian_acceleration: ArrayLike = field(
-        default_factory=lambda: np.zeros(3, dtype=np.float32)
-    )
-    angular_position: ArrayLike = field(default_factory=lambda: np.zeros(3, dtype=np.float32))
-    angular_velocity: ArrayLike = field(default_factory=lambda: np.zeros(3, dtype=np.float32))
-    angular_acceleration: ArrayLike = field(default_factory=lambda: np.zeros(3, dtype=np.float32))
+    linear_position: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
+    linear_velocity: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
+    linear_acceleration: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
+    angular_position: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
+    angular_velocity: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
+    angular_acceleration: ArrayLike = field(default=np.zeros(3, dtype=np.float32))
