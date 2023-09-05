@@ -11,18 +11,12 @@ import numpy as np
 
 class BoatState:
     # Private class member defaults
-    __inertia = np.identity(n=3, dtype=np.float32)
-    __inertia_inverse = np.identity(n=3, dtype=np.float32)
-    __boat_mass = 1.0
-    __timestep = 1.0
-    __kinematics_computation = BoatKinematics(__timestep)
+    __kinematics_computation = BoatKinematics(
+        timestep=1.0, mass=1.0, inertia=np.identity(n=3, dtype=np.float32)
+        )
 
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
-        self.__timestep = timestep
-        self.__boat_mass = mass
-        self.__inertia = np.array(inertia, dtype=np.float32)
-        self.__inertia_inverse = np.linalg.inv(self.__inertia)
-        self.__kinematics_computation = BoatKinematics(self.__timestep)
+        self.__kinematics_computation = BoatKinematics(timestep, mass, inertia)
 
     def compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         raise NotImplementedError()
@@ -34,23 +28,23 @@ class BoatState:
 
     @property
     def global_position(self) -> ArrayLike:
-        return self.__kinematics_computation.global_data.cartesian_position
+        return self.__kinematics_computation.global_data.linear_position
 
     @property
     def global_velocity(self) -> ArrayLike:
-        return self.__kinematics_computation.global_data.cartesian_velocity
+        return self.__kinematics_computation.global_data.linear_velocity
 
     @property
     def global_acceleration(self) -> ArrayLike:
-        self.__kinematics_computation.global_data.cartesian_acceleration
+        self.__kinematics_computation.global_data.linear_acceleration
 
     @property
     def relative_velocity(self) -> ArrayLike:
-        return self.__kinematics_computation.relative_data.cartesian_velocity
+        return self.__kinematics_computation.relative_data.linear_velocity
 
     @property
     def relative_acceleration(self) -> ArrayLike:
-        return self.__kinematics_computation.relative_data.cartesian_acceleration
+        return self.__kinematics_computation.relative_data.linear_acceleration
 
     @property
     def angular_position(self) -> ArrayLike:
@@ -66,19 +60,19 @@ class BoatState:
 
     @property
     def inertia(self) -> ArrayLike:
-        return self.__inertia
+        return self.__kinematics_computation.inertia
 
     @property
     def inertia_inverse(self) -> ArrayLike:
-        return self.__inertia_inverse
+        return self.__kinematics_computation.inertia_inverse
 
     @property
     def boat_mass(self) -> Scalar:
-        return self.__boat_mass
+        return self.__kinematics_computation.boat_mass
 
     @property
     def timestep(self) -> Scalar:
-        return self.__timestep
+        return self.__kinematics_computation.timestep
 
     @property
     def speed(self) -> Scalar:
