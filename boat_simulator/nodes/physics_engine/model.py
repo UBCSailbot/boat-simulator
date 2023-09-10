@@ -2,8 +2,8 @@
 
 from typing import Tuple
 from numpy.typing import ArrayLike
-from boat_simulator.boat_simulator.common.types import Scalar
-from boat_simulator.boat_simulator.nodes.physics_engine.kinematics_computation \
+from boat_simulator.common.types import Scalar
+from boat_simulator.nodes.physics_engine.kinematics_computation \
     import BoatKinematics
 from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
 import numpy as np
