@@ -1,7 +1,7 @@
 """Useful functions that could be used anywhere in the boat simulator package."""
 
 import math
-
+from numpy.typing import ArrayLike
 from boat_simulator.common.types import Scalar
 
 
@@ -29,18 +29,20 @@ def degrees_to_rad(angle: Scalar) -> Scalar:
     return angle * (math.pi / 180)
 
 
-def bound_to_180(angle: Scalar, isDegrees: bool = True) -> Scalar:
+def bound_to_180(angles: ArrayLike, isDegrees: bool = True) -> ArrayLike:
     """Converts an angle to be in the range [-180, 180) degrees.
 
     Args:
-        `angle` (Scalar): Angle to be bound.
+        `angles` (ArrayLike): Angles to be bound.
         `isDegrees` (bool, optional): True if the input is in degrees, and false for radians.
             Defaults to True.
 
     Returns:
-        Scalar: Bounded angle. Output unit matches `isDegrees`.
+        ArrayLike: Bounded angles. Output unit matches `isDegrees`.
     """
-    raise NotImplementedError()
+    if isDegrees:
+        return [angle - 360 * ((angle + 180) // 360) for angle in angles]
+    return [(angle + math.pi) % (2 * math.pi) - math.pi for angle in angles]
 
 
 def bound_to_360(angle: Scalar, isDegrees: bool = True) -> Scalar:

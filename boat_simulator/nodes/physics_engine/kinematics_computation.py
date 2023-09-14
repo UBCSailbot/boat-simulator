@@ -5,6 +5,7 @@ from numpy.typing import ArrayLike
 from boat_simulator.common.types import Scalar
 from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
 import numpy as np
+import boat_simulator.common.utils as utils
 import boat_simulator.common.constants as constants
 
 
@@ -35,14 +36,22 @@ class BoatKinematics:
         return (self.relative_data, self.global_data)
 
     def __update_ang_data(self, net_torque: ArrayLike) -> Scalar:
-        next_ang_acceleration = self.__compute_next_ang_acceleration(net_torque)
-        next_ang_velocity = self.__compute_next_velocity(
-            self.global_data.angular_velocity, self.global_data.angular_acceleration
+        next_ang_acceleration = utils.bound_to_180(
+            self.__compute_next_ang_acceleration(net_torque), isDegrees=False
             )
-        next_ang_position = self.__compute_next_position(
-            self.global_data.angular_position,
-            self.global_data.angular_velocity,
-            self.global_data.angular_acceleration
+        next_ang_velocity = utils.bound_to_180(
+            self.__compute_next_velocity(
+                self.global_data.angular_velocity, self.global_data.angular_acceleration
+                ),
+            isDegrees=False
+            )
+        next_ang_position = utils.bound_to_180(
+            self.__compute_next_position(
+                self.global_data.angular_position,
+                self.global_data.angular_velocity,
+                self.global_data.angular_acceleration
+                ),
+            isDegrees=False
             )
 
         self.__relative_data.angular_acceleration = next_ang_acceleration
