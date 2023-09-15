@@ -29,20 +29,21 @@ def degrees_to_rad(angle: Scalar) -> Scalar:
     return angle * (math.pi / 180)
 
 
-def bound_to_180(angles: ArrayLike, isDegrees: bool = True) -> ArrayLike:
-    """Converts an angle to be in the range [-180, 180) degrees.
+def bound_to_180(angles: ArrayLike, isRadians: bool = True) -> ArrayLike:
+    """Converts an angle to be in the range [-π, π) radians or [-180, 180) degrees.
 
     Args:
         `angles` (ArrayLike): Angles to be bound.
-        `isDegrees` (bool, optional): True if the input is in degrees, and false for radians.
+        `isRadians` (bool, optional): True if the input is in radians, and false for degrees.
             Defaults to True.
 
     Returns:
-        ArrayLike: Bounded angles. Output unit matches `isDegrees`.
+        ArrayLike: Bounded angles. Output unit matches `isRadians`.
     """
-    if isDegrees:
-        return [angle - 360 * ((angle + 180) // 360) for angle in angles]
-    return [(angle + math.pi) % (2 * math.pi) - math.pi for angle in angles]
+    bound = math.pi if isRadians else 180
+    for i in range(len(angles)):
+        angles[i] = angles[i] - 2 * bound * math.floor((angles[i] + bound) / (2 * bound))
+    return angles
 
 
 def bound_to_360(angle: Scalar, isDegrees: bool = True) -> Scalar:
