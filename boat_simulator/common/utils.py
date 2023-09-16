@@ -42,7 +42,7 @@ def bound_to_180(angles: ArrayLike, isRadians: bool = True) -> ArrayLike:
     """
     bound = math.pi if isRadians else 180
     for i in range(len(angles)):
-        angles[i] = angles[i] - 2 * bound * math.floor((angles[i] + bound) / (2 * bound))
+        angles[i] = angles[i] - 2 * bound * ((angles[i] + bound) // (2 * bound))
     return angles
 
 
