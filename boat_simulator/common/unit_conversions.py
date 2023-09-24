@@ -92,15 +92,62 @@ class ConversionFactors(Enum):
     that will be performed.
 
     Attributes:
-        <UNIT A>2<UNIT B> (EnumAttr): `ConversionFactor` classes to perform unit
+        <UNIT A>_to_<UNIT B> (EnumAttr): `ConversionFactor` classes to perform unit
             conversions going from unit A to B.
 
         Attributes in this class must follow the above naming convention.
     """
 
-    sec2min = ConversionFactor(factor=1 / 60)
-    sec2hr = sec2min * ConversionFactor(factor=1 / 60)
-    min2sec = sec2min.inverse()
+    # Length
+
+    m_to_km = ConversionFactor(factor=1000)
+    km_to_m = m_to_km.inverse()
+
+    cm_to_m = ConversionFactor(factor=100)
+    m_to_cm = cm_to_m.inverse()
+
+    km_to_cm = km_to_m * m_to_cm
+    cm_to_km = km_to_cm.inverse()
+
+    m_to_ft = ConversionFactor(factor=3.281)
+    ft_to_m = m_to_ft.inverse()
+
+    mi_to_m = ConversionFactor(factor=1609.34)
+    m_to_mi = mi_to_m.inverse()
+
+    mi_to_km = mi_to_m * m_to_km
+    km_to_mi = mi_to_km.inverse()
+
+    # Time
+    min_to_sec = ConversionFactor(factor=60)
+    sec_to_min = min_to_sec.inverse()
+
+    h_to_min = ConversionFactor(factor=60)
+    min_to_h = h_to_min.inverse()
+
+    h_to_sec = h_to_min * min_to_sec
+    sec_to_hr = sec_to_min.inverse()
+
+    # Speed
+    miPh_to_kmPh = ConversionFactor(factor=1.60934)
+    kmPh_to_miPh = miPh_to_kmPh.inverse()
+
+    mPs_to_kmPh = ConversionFactor(factor=3.6)
+    kmPh_to_mPs = mPs_to_kmPh.inverse()
+
+    knots_to_kmPh = ConversionFactor(factor=1.852)
+    kmPh_to_knots = knots_to_kmPh.inverse()
+
+    knots_to_miPh = ConversionFactor(factor=1.15077945)
+    miPh_to_knots = knots_to_miPh.inverse()
+
+    # Acceleration
+
+    miPs2_to_mPs2 = mi_to_m
+    mPs2_to_miPs2 = m_to_mi
+
+    mPs2_to_knotsPs2 = ConversionFactor(factor=1.944)
+    knotsP2_to_mPs2 = mPs2_to_knotsPs2.inverse()
 
 
 class UnitConverter:
