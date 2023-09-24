@@ -167,11 +167,14 @@ class UnitConverter:
                 values are class attribute values. Dictionary values are strictly class attributes
                 belonging to `ConversionFactors`.
         """
-        # TODO Implement this function to accept keys as class attributes and conversion enums
-        pass
+        for attr_name, attr_val in kwargs.items():
+            setattr(self, attr_name, attr_val)
 
     def convert(self, **kwargs: Scalar) -> Dict[str, Scalar]:
         """Perform unit conversions for multiple specified values.
+
+        Pre-Condition:
+            Unit conversions are only done on comparable units. Ex: Length to length
 
         Args:
             kwargs (Dict[str, Scalar]): Dictionary keys are strictly names of attributes belonging
@@ -182,5 +185,12 @@ class UnitConverter:
             Dict[str, Scalar]: Converted values. Dictionary keys are class attribute names
                 corresponding to the converted value. Dictionary values are the converted values.
         """
-        # TODO Implement this function
-        raise NotImplementedError()
+        converted_values = {}
+
+        for attr_name, attr_val in kwargs.items():
+            conversion_factor = getattr(self, attr_name, None).value
+            converted_values[attr_name] = (
+                None if conversion_factor is None else conversion_factor.forward_convert(attr_val)
+            )
+
+        return converted_values
