@@ -100,23 +100,32 @@ class ConversionFactors(Enum):
 
     # Length
 
-    m_to_km = ConversionFactor(factor=1000)
-    km_to_m = m_to_km.inverse()
+    km_to_m = ConversionFactor(factor=1000)
+    m_to_km = km_to_m.inverse()
 
-    cm_to_m = ConversionFactor(factor=100)
-    m_to_cm = cm_to_m.inverse()
+    m_to_cm = ConversionFactor(factor=100)
+    cm_to_m = m_to_cm.inverse()
 
     km_to_cm = km_to_m * m_to_cm
     cm_to_km = km_to_cm.inverse()
 
-    m_to_ft = ConversionFactor(factor=3.281)
+    m_to_ft = ConversionFactor(factor=3.28084)
     ft_to_m = m_to_ft.inverse()
+
+    mi_to_ft = ConversionFactor(factor=5280)
+    ft_to_mi = mi_to_ft.inverse()
 
     mi_to_m = ConversionFactor(factor=1609.34)
     m_to_mi = mi_to_m.inverse()
 
     mi_to_km = mi_to_m * m_to_km
     km_to_mi = mi_to_km.inverse()
+
+    nautical_mi_to_mi = ConversionFactor(factor=1.15078)
+    mi_to_nautical_mi = nautical_mi_to_mi.inverse()
+
+    nautical_mi_to_km = ConversionFactor(factor=1.852)
+    km_to_nautical_mi = nautical_mi_to_km.inverse()
 
     # Time
     min_to_sec = ConversionFactor(factor=60)
