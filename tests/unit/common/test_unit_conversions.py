@@ -1,6 +1,10 @@
 """Tests classes and functions in boat_simulator/common/unit_conversions.py"""
 
-from boat_simulator.common.unit_conversions import ConversionFactor
+from boat_simulator.common.unit_conversions import (
+    ConversionFactor,
+    ConversionFactors,
+    UnitConverter,
+)
 import pytest
 import math
 
@@ -48,4 +52,121 @@ class TestConversionFactor:
 
 
 class TestUnitConverter:
-    pass
+    def test_init(self):
+        unit_converter1 = UnitConverter(
+            prop1=ConversionFactors.sec_to_min, prop2=ConversionFactors.sec_to_hr
+        )
+        assert unit_converter1.prop1 == ConversionFactors.sec_to_min
+        assert unit_converter1.prop2 == ConversionFactors.sec_to_hr
+
+        converted_values1 = unit_converter1.convert(prop1=120, prop2=3600)
+
+        assert converted_values1["prop1"] == 2.0
+        assert converted_values1["prop2"] == 1.0
+
+        conversion_factors = {
+            "prop1": ConversionFactors.sec_to_min,
+            "prop2": ConversionFactors.sec_to_hr,
+        }
+        values = {"prop1": 120, "prop2": 3600}
+        unit_converter2 = UnitConverter(**conversion_factors)
+
+        assert unit_converter2.prop1 == ConversionFactors.sec_to_min
+        assert unit_converter2.prop2 == ConversionFactors.sec_to_hr
+
+        converted_values2 = unit_converter2.convert(**values)
+
+        assert converted_values2["prop1"] == 2.0
+        assert converted_values2["prop2"] == 1.0
+
+    def test_convert_m_km(self):
+        unit_converter = UnitConverter(
+            m_to_km=ConversionFactors.m_to_km, km_to_m=ConversionFactors.km_to_m
+        )
+
+        converted_values = unit_converter.convert(m_to_km=1000, km_to_m=1)
+
+        assert converted_values["m_to_km"] == 1
+        assert converted_values["km_to_m"] == 1000
+
+    def test_convert_cm_m(self):
+        unit_converter = UnitConverter(
+            cm_to_m=ConversionFactors.cm_to_m, m_to_cm=ConversionFactors.m_to_cm
+        )
+
+        converted_values = unit_converter.convert(cm_to_m=100, m_to_cm=1)
+
+        assert converted_values["cm_to_m"] == 1
+        assert converted_values["m_to_cm"] == 100
+
+    def test_convert_cm_km(self):
+        unit_converter = UnitConverter(
+            km_to_cm=ConversionFactors.km_to_cm, cm_to_km=ConversionFactors.cm_to_km
+        )
+
+        converted_values = unit_converter.convert(km_to_cm=1, cm_to_km=1e5)
+
+        assert converted_values["km_to_cm"] == 1e5
+        assert converted_values["cm_to_km"] == 1
+
+    def test_convert_ft_m(self):
+        unit_converter = UnitConverter(
+            m_to_ft=ConversionFactors.m_to_ft, ft_to_m=ConversionFactors.ft_to_m
+        )
+
+        converted_values = unit_converter.convert(m_to_ft=100.0, ft_to_m=10)
+
+        assert math.isclose(converted_values["m_to_ft"], 328.084, abs_tol=1e-6)
+        assert math.isclose(converted_values["ft_to_m"], 3.048, abs_tol=1e-6)
+
+    def test_convert_ft_mi(self):
+        unit_converter = UnitConverter(
+            mi_to_ft=ConversionFactors.mi_to_ft, ft_to_mi=ConversionFactors.ft_to_mi
+        )
+
+        converted_values = unit_converter.convert(mi_to_ft=1, ft_to_mi=1000)
+
+        assert converted_values["mi_to_ft"] == 5280
+        assert math.isclose(converted_values["ft_to_mi"], 0.189394, abs_tol=1e-6)
+
+    def test_convert_m_mi(self):
+        unit_converter = UnitConverter(
+            mi_to_m=ConversionFactors.mi_to_m, m_to_mi=ConversionFactors.m_to_mi
+        )
+
+        converted_values = unit_converter.convert(mi_to_m=10, m_to_mi=1e4)
+
+        assert math.isclose(converted_values["mi_to_m"], 16093.4, abs_tol=1e-6)
+        assert math.isclose(converted_values["m_to_mi"], 6.213727, abs_tol=1e-6)
+
+    def test_convert_km_mi(self):
+        unit_converter = UnitConverter(
+            km_to_mi=ConversionFactors.km_to_mi, mi_to_km=ConversionFactors.mi_to_km
+        )
+
+        converted_values = unit_converter.convert(km_to_mi=1.0, mi_to_km=10.0)
+
+        assert math.isclose(converted_values["km_to_mi"], 0.6213727, abs_tol=1e-6)
+        assert converted_values["mi_to_km"] == 16.0934
+
+    def test_mi_nautical_mi(self):
+        unit_converter = UnitConverter(
+            nat_mi_to_mi=ConversionFactors.nautical_mi_to_mi,
+            mi_to_nat_mi=ConversionFactors.mi_to_nautical_mi,
+        )
+
+        converted_values = unit_converter.convert(nat_mi_to_mi=1.0, mi_to_nat_mi=1.0)
+
+        assert converted_values["nat_mi_to_mi"] == 1.15078
+        assert math.isclose(converted_values["mi_to_nat_mi"], 0.868976, abs_tol=1e-6)
+
+    def test_km_nautical_mi(self):
+        unit_converter = UnitConverter(
+            nat_mi_to_km=ConversionFactors.nautical_mi_to_km,
+            km_to_nat_mi=ConversionFactors.km_to_nautical_mi,
+        )
+
+        converted_values = unit_converter.convert(nat_mi_to_km=1.0, km_to_nat_mi=1.0)
+
+        assert converted_values["nat_mi_to_km"] == 1.852
+        assert math.isclose(converted_values["km_to_nat_mi"], 0.539957, abs_tol=1e-6)
