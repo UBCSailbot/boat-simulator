@@ -1,12 +1,14 @@
 """Tests classes and functions in boat_simulator/common/unit_conversions.py"""
 
+import math
+
+import pytest
+
 from boat_simulator.common.unit_conversions import (
     ConversionFactor,
     ConversionFactors,
     UnitConverter,
 )
-import pytest
-import math
 
 
 class TestConversionFactor:
@@ -53,6 +55,9 @@ class TestConversionFactor:
 
 class TestUnitConverter:
     def test_init(self):
+        """
+        Test instance attribute assignment using attributes or using kwargs into constructor
+        """
         unit_converter1 = UnitConverter(
             prop1=ConversionFactors.sec_to_min, prop2=ConversionFactors.sec_to_hr
         )
@@ -149,7 +154,7 @@ class TestUnitConverter:
         assert math.isclose(converted_values["km_to_mi"], 0.6213727, abs_tol=1e-6)
         assert converted_values["mi_to_km"] == 16.0934
 
-    def test_mi_nautical_mi(self):
+    def test_convert_mi_nautical_mi(self):
         unit_converter = UnitConverter(
             nat_mi_to_mi=ConversionFactors.nautical_mi_to_mi,
             mi_to_nat_mi=ConversionFactors.mi_to_nautical_mi,
@@ -160,7 +165,7 @@ class TestUnitConverter:
         assert converted_values["nat_mi_to_mi"] == 1.15078
         assert math.isclose(converted_values["mi_to_nat_mi"], 0.868976, abs_tol=1e-6)
 
-    def test_km_nautical_mi(self):
+    def test_convert_km_nautical_mi(self):
         unit_converter = UnitConverter(
             nat_mi_to_km=ConversionFactors.nautical_mi_to_km,
             km_to_nat_mi=ConversionFactors.km_to_nautical_mi,
@@ -170,3 +175,45 @@ class TestUnitConverter:
 
         assert converted_values["nat_mi_to_km"] == 1.852
         assert math.isclose(converted_values["km_to_nat_mi"], 0.539957, abs_tol=1e-6)
+
+    def test_convert_sec_min(self):
+        unit_converter = UnitConverter(
+            sec_to_min=ConversionFactors.sec_to_min,
+            min_to_sec=ConversionFactors.min_to_sec,
+        )
+
+        converted_values = unit_converter.convert(sec_to_min=120.0, min_to_sec=10.0)
+
+        assert converted_values["sec_to_min"] == 2.0
+        assert converted_values["min_to_sec"] == 600.0
+
+    def test_convert_sec_h(self):
+        unit_converter = UnitConverter(
+            sec_to_h=ConversionFactors.sec_to_h,
+            h_to_sec=ConversionFactors.h_to_sec,
+        )
+
+        converted_values = unit_converter.convert(sec_to_h=3600, h_to_sec=1)
+
+        assert converted_values["sec_to_h"] == 1
+        assert converted_values["h_to_sec"] == 3600
+
+    def test_convert_min_h(self):
+        unit_converter = UnitConverter(
+            min_to_h=ConversionFactors.min_to_h,
+            h_to_min=ConversionFactors.h_to_min,
+        )
+
+        converted_values = unit_converter.convert(min_to_h=90, h_to_min=2)
+
+        assert converted_values["min_to_h"] == 1.5
+        assert converted_values["h_to_min"] == 120
+
+    def test_convert_miPh_kmPh(self):
+        pass
+
+    def test_convert_mPs_kmPh(self):
+        pass
+
+    def test_convert_knots_kmPh(self):
+        pass

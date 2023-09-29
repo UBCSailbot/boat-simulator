@@ -1,9 +1,11 @@
 """Unit conversion logic, mostly contained in the `UnitConverter` class."""
 
 from __future__ import annotations
-from boat_simulator.common.types import EnumAttr, Scalar
+
 from enum import Enum
 from typing import Dict
+
+from boat_simulator.common.types import EnumAttr, Scalar
 
 
 class ConversionFactor:
@@ -135,7 +137,7 @@ class ConversionFactors(Enum):
     min_to_h = h_to_min.inverse()
 
     h_to_sec = h_to_min * min_to_sec
-    sec_to_hr = sec_to_min.inverse()
+    sec_to_h = h_to_sec.inverse()
 
     # Speed
     miPh_to_kmPh = ConversionFactor(factor=1.60934)
