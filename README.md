@@ -10,7 +10,7 @@ team's [docs website](https://ubcsailbot.github.io/docs/main/current/boat_simula
 
 The boat simulator is meant to be ran inside the [Sailbot Workspace](https://github.com/UBCSailbot/sailbot_workspace)
 development environment. Follow the setup instructions for the Sailbot Workspace
-[here](https://ubcsailbot.github.io/docs/current/sailbot_workspace/setup/)
+[here](https://ubcsailbot.github.io/docs/main/current/sailbot_workspace/setup/)
 to get started and build all the necessary ROS packages.
 
 ## Run
