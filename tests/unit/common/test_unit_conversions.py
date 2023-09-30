@@ -141,8 +141,8 @@ class TestUnitConverter:
 
         converted_values = unit_converter.convert(mi_to_m=10, m_to_mi=1e4)
 
-        assert math.isclose(converted_values["mi_to_m"], 16093.4, abs_tol=1e-6)
-        assert math.isclose(converted_values["m_to_mi"], 6.213727, abs_tol=1e-6)
+        assert math.isclose(converted_values["mi_to_m"], 16093.44, abs_tol=1e-6)
+        assert math.isclose(converted_values["m_to_mi"], 6.2137119, abs_tol=1e-6)
 
     def test_convert_km_mi(self):
         unit_converter = UnitConverter(
@@ -151,8 +151,8 @@ class TestUnitConverter:
 
         converted_values = unit_converter.convert(km_to_mi=1.0, mi_to_km=10.0)
 
-        assert math.isclose(converted_values["km_to_mi"], 0.6213727, abs_tol=1e-6)
-        assert converted_values["mi_to_km"] == 16.0934
+        assert math.isclose(converted_values["km_to_mi"], 0.62137119, abs_tol=1e-6)
+        assert converted_values["mi_to_km"] == 16.09344
 
     def test_convert_mi_nautical_mi(self):
         unit_converter = UnitConverter(
