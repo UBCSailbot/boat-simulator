@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from enum import Enum
 from typing import Dict
 
@@ -173,6 +174,11 @@ class ConversionFactors(Enum):
 
     kg_to_lb = ConversionFactor(factor=2.2046226218)
     lb_to_kg = kg_to_lb.inverse()
+
+    # Rotation
+
+    degrees_to_rad = ConversionFactor(factor=math.pi / 180)
+    rad_to_degrees = degrees_to_rad.inverse()
 
 
 class UnitConverter:

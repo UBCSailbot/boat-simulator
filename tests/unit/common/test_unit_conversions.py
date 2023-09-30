@@ -315,3 +315,16 @@ class TestUnitConverter:
 
         assert math.isclose(converted_values["kg_to_lb"], 3.3069339328, abs_tol=1e-6)
         assert math.isclose(converted_values["lb_to_kg"], 0.45359237, abs_tol=1e-6)
+
+    @pytest.mark.parametrize(
+        "degrees_to_rad, expected_result",
+        [(0, 0), (90, math.pi / 2), (180, math.pi), (360, 2 * math.pi), (-180, -math.pi)],
+    )
+    def test_convert_degrees_to_rad(self, degrees_to_rad, expected_result):
+        unit_convertor = UnitConverter(
+            degrees_to_rad=ConversionFactors.degrees_to_rad,
+        )
+
+        converted_values = unit_convertor.convert(degrees_to_rad=degrees_to_rad)
+
+        assert math.isclose(converted_values["degrees_to_rad"], expected_result, abs_tol=1e-6)
