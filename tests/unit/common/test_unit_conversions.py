@@ -328,3 +328,16 @@ class TestUnitConverter:
         converted_values = unit_convertor.convert(degrees_to_rad=degrees_to_rad)
 
         assert math.isclose(converted_values["degrees_to_rad"], expected_result, abs_tol=1e-6)
+
+    @pytest.mark.parametrize(
+        "rad_to_degrees, expected_result",
+        [(0, 0), (math.pi / 2, 90), (math.pi, 180), (2 * math.pi, 360), (-math.pi, -180)],
+    )
+    def test_convert_rad_to_degrees(self, rad_to_degrees, expected_result):
+        unit_convertor = UnitConverter(
+            rad_to_degrees=ConversionFactors.rad_to_degrees,
+        )
+
+        converted_values = unit_convertor.convert(rad_to_degrees=rad_to_degrees)
+
+        assert math.isclose(converted_values["rad_to_degrees"], expected_result, abs_tol=1e-6)
