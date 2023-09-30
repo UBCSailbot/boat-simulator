@@ -59,10 +59,10 @@ class TestUnitConverter:
         Test instance attribute assignment using attributes or using kwargs into constructor
         """
         unit_converter1 = UnitConverter(
-            prop1=ConversionFactors.sec_to_min, prop2=ConversionFactors.sec_to_hr
+            prop1=ConversionFactors.sec_to_min, prop2=ConversionFactors.sec_to_h
         )
         assert unit_converter1.prop1 == ConversionFactors.sec_to_min
-        assert unit_converter1.prop2 == ConversionFactors.sec_to_hr
+        assert unit_converter1.prop2 == ConversionFactors.sec_to_h
 
         converted_values1 = unit_converter1.convert(prop1=120, prop2=3600)
 
@@ -71,13 +71,13 @@ class TestUnitConverter:
 
         conversion_factors = {
             "prop1": ConversionFactors.sec_to_min,
-            "prop2": ConversionFactors.sec_to_hr,
+            "prop2": ConversionFactors.sec_to_h,
         }
         values = {"prop1": 120, "prop2": 3600}
         unit_converter2 = UnitConverter(**conversion_factors)
 
         assert unit_converter2.prop1 == ConversionFactors.sec_to_min
-        assert unit_converter2.prop2 == ConversionFactors.sec_to_hr
+        assert unit_converter2.prop2 == ConversionFactors.sec_to_h
 
         converted_values2 = unit_converter2.convert(**values)
 
@@ -210,10 +210,108 @@ class TestUnitConverter:
         assert converted_values["h_to_min"] == 120
 
     def test_convert_miPh_kmPh(self):
-        pass
+        unit_converter = UnitConverter(
+            miPh_to_kmPh=ConversionFactors.miPh_to_kmPh,
+            kmPh_to_miPh=ConversionFactors.kmPh_to_miPh,
+        )
+
+        converted_values = unit_converter.convert(miPh_to_kmPh=10.0, kmPh_to_miPh=10.0)
+
+        assert math.isclose(converted_values["miPh_to_kmPh"], 16.09344, abs_tol=1e-6)
+        assert math.isclose(converted_values["kmPh_to_miPh"], 6.2137119, abs_tol=1e-6)
 
     def test_convert_mPs_kmPh(self):
-        pass
+        unit_converter = UnitConverter(
+            mPs_to_kmPh=ConversionFactors.mPs_to_kmPh,
+            kmPh_to_mPs=ConversionFactors.kmPh_to_mPs,
+        )
+
+        converted_values = unit_converter.convert(mPs_to_kmPh=1.0, kmPh_to_mPs=1.0)
+
+        assert converted_values["mPs_to_kmPh"] == 3.6
+        assert math.isclose(converted_values["kmPh_to_mPs"], 0.277778, abs_tol=1e-6)
 
     def test_convert_knots_kmPh(self):
-        pass
+        unit_converter = UnitConverter(
+            knots_to_kmPh=ConversionFactors.knots_to_kmPh,
+            kmPh_to_knots=ConversionFactors.kmPh_to_knots,
+        )
+
+        converted_values = unit_converter.convert(knots_to_kmPh=1.0, kmPh_to_knots=1.0)
+
+        assert math.isclose(converted_values["knots_to_kmPh"], 1.852, abs_tol=1e-6)
+        assert math.isclose(converted_values["kmPh_to_knots"], 0.539957, abs_tol=1e-6)
+
+    def test_convert_knots_miPh(self):
+        unit_converter = UnitConverter(
+            knots_to_miPh=ConversionFactors.knots_to_miPh,
+            miPh_to_knots=ConversionFactors.miPh_to_knots,
+        )
+
+        converted_values = unit_converter.convert(knots_to_miPh=1.0, miPh_to_knots=1.0)
+
+        assert math.isclose(converted_values["knots_to_miPh"], 1.15078, abs_tol=1e-6)
+        assert math.isclose(converted_values["miPh_to_knots"], 0.868976, abs_tol=1e-6)
+
+    def test_convert_miPs2_mPs2(self):
+        unit_converter = UnitConverter(
+            miPs2_to_mPs2=ConversionFactors.miPs2_to_mPs2,
+            mPs2_to_miPs2=ConversionFactors.mPs2_to_miPs2,
+        )
+
+        converted_values = unit_converter.convert(miPs2_to_mPs2=1.0, mPs2_to_miPs2=1.0)
+
+        assert math.isclose(converted_values["miPs2_to_mPs2"], 1609.344, abs_tol=1e-6)
+        assert math.isclose(converted_values["mPs2_to_miPs2"], 0.000621371192, abs_tol=1e-6)
+
+    def test_convert_kmPs2_mPs2(self):
+        unit_converter = UnitConverter(
+            kmPs2_to_mPs2=ConversionFactors.kmPs2_to_mPs2,
+            mPs2_to_kmPs2=ConversionFactors.mPs2_to_kmPs2,
+        )
+
+        converted_values = unit_converter.convert(kmPs2_to_mPs2=1.0, mPs2_to_kmPs2=1.0)
+
+        assert converted_values["kmPs2_to_mPs2"] == 1e3
+        assert converted_values["mPs2_to_kmPs2"] == 1e-3
+
+    def test_convert_mPs2_knotsPs2(self):
+        unit_converter = UnitConverter(
+            mPs2_to_knotsPs2=ConversionFactors.mPs2_to_knotsPs2,
+            knotsPs2_to_mPs2=ConversionFactors.knotsPs2_to_mPs2,
+        )
+
+        converted_values = unit_converter.convert(mPs2_to_knotsPs2=1.0, knotsPs2_to_mPs2=1.0)
+
+        assert math.isclose(converted_values["mPs2_to_knotsPs2"], 1.94384466, abs_tol=1e-6)
+        assert math.isclose(converted_values["knotsPs2_to_mPs2"], 0.514444, abs_tol=1e-6)
+
+    def test_convert_kg_g(self):
+        unit_convertor = UnitConverter(
+            kg_to_g=ConversionFactors.kg_to_g, g_to_kg=ConversionFactors.g_to_kg
+        )
+
+        converted_values = unit_convertor.convert(kg_to_g=1.0, g_to_kg=1000.0)
+
+        assert converted_values["kg_to_g"] == 1000.0
+        assert converted_values["g_to_kg"] == 1.0
+
+    def test_convert_lb_g(self):
+        unit_convertor = UnitConverter(
+            lb_to_g=ConversionFactors.lb_to_g, g_to_lb=ConversionFactors.g_to_lb
+        )
+
+        converted_values = unit_convertor.convert(lb_to_g=2.5, g_to_lb=1.0)
+
+        assert math.isclose(converted_values["lb_to_g"], 1133.980925, abs_tol=1e-6)
+        assert math.isclose(converted_values["g_to_lb"], 0.00220462, abs_tol=1e-6)
+
+    def test_convert_kg_lb(self):
+        unit_convertor = UnitConverter(
+            kg_to_lb=ConversionFactors.kg_to_lb, lb_to_kg=ConversionFactors.lb_to_kg
+        )
+
+        converted_values = unit_convertor.convert(kg_to_lb=1.5, lb_to_kg=1.0)
+
+        assert math.isclose(converted_values["kg_to_lb"], 3.3069339328, abs_tol=1e-6)
+        assert math.isclose(converted_values["lb_to_kg"], 0.45359237, abs_tol=1e-6)

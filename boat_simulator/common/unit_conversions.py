@@ -117,7 +117,7 @@ class ConversionFactors(Enum):
     mi_to_ft = ConversionFactor(factor=5280)
     ft_to_mi = mi_to_ft.inverse()
 
-    mi_to_m = ConversionFactor(factor=1609.34)
+    mi_to_m = ConversionFactor(factor=1609.344)
     m_to_mi = mi_to_m.inverse()
 
     mi_to_km = mi_to_m * m_to_km
@@ -140,7 +140,7 @@ class ConversionFactors(Enum):
     sec_to_h = h_to_sec.inverse()
 
     # Speed
-    miPh_to_kmPh = ConversionFactor(factor=1.60934)
+    miPh_to_kmPh = ConversionFactor(factor=1.609344)
     kmPh_to_miPh = miPh_to_kmPh.inverse()
 
     mPs_to_kmPh = ConversionFactor(factor=3.6)
@@ -157,8 +157,22 @@ class ConversionFactors(Enum):
     miPs2_to_mPs2 = mi_to_m
     mPs2_to_miPs2 = m_to_mi
 
-    mPs2_to_knotsPs2 = ConversionFactor(factor=1.944)
-    knotsP2_to_mPs2 = mPs2_to_knotsPs2.inverse()
+    kmPs2_to_mPs2 = km_to_m
+    mPs2_to_kmPs2 = m_to_km
+
+    mPs2_to_knotsPs2 = ConversionFactor(factor=1.94384466)
+    knotsPs2_to_mPs2 = mPs2_to_knotsPs2.inverse()
+
+    # Mass
+
+    kg_to_g = ConversionFactor(factor=1000)
+    g_to_kg = kg_to_g.inverse()
+
+    lb_to_g = ConversionFactor(factor=453.59237)
+    g_to_lb = lb_to_g.inverse()
+
+    kg_to_lb = ConversionFactor(factor=2.2046226218)
+    lb_to_kg = kg_to_lb.inverse()
 
 
 class UnitConverter:
