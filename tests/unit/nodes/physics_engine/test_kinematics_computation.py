@@ -144,7 +144,7 @@ class TestKinematicsComputation:
         return prev_expected_data
 
     @pytest.mark.parametrize(
-        "timestep, mass, inertia, rel_net_force, net_torque",
+        "timestep, mass, inertia, rel_net_force, net_torque, num_steps",
         [
             (
                 0.1,
@@ -152,6 +152,7 @@ class TestKinematicsComputation:
                 np.array([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]], dtype=np.float32),
                 np.array([1.0, 2.0, 3.0], dtype=np.float32),
                 np.array([0.1, 0.2, 0.3], dtype=np.float32),
+                3,
             ),
             (
                 0.05,
@@ -159,18 +160,17 @@ class TestKinematicsComputation:
                 np.array([[0.5, 0.5, 0.5], [0.0, 0.5, 0.5], [0.0, 0.0, 0.5]], dtype=np.float32),
                 np.array([2.0, 3.0, 1.0], dtype=np.float32),
                 np.array([0.2, 0.3, 0.1], dtype=np.float32),
+                3,
             ),
         ],
     )
-    def test_boat_kinematics(self, timestep, mass, inertia, rel_net_force, net_torque):
+    def test_boat_kinematics(self, timestep, mass, inertia, rel_net_force, net_torque, num_steps):
         inertia_inverse = np.linalg.inv(inertia)
         boat_kinematics = BoatKinematics(timestep, mass, inertia)
 
         prev_expected_ang_data = ExpectedData()
         prev_expected_rel_lin_data = ExpectedData()
         prev_expected_glo_lin_data = ExpectedData()
-
-        num_steps = 3
 
         for _ in range(num_steps):
             relative_data, global_data = boat_kinematics.step(rel_net_force, net_torque)
