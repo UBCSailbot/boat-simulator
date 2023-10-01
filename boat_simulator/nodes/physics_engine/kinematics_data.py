@@ -1,8 +1,9 @@
 """This module contains the kinematics data for the boat."""
 
 from dataclasses import Field, dataclass, field
-from numpy.typing import ArrayLike
+
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 @dataclass

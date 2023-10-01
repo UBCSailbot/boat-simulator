@@ -1,58 +1,59 @@
 """This module contains the kinematics computations for the boat."""
 
 from typing import Tuple
+
+import numpy as np
 from numpy.typing import ArrayLike
+
+import boat_simulator.common.constants as constants
+import boat_simulator.common.utils as utils
 from boat_simulator.common.types import Scalar
 from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
-import numpy as np
-import boat_simulator.common.utils as utils
-import boat_simulator.common.constants as constants
+from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFormulas
 
 
 class BoatKinematics:
-    # Private class member default
-    __relative_data = KinematicsData()
-    __global_data = KinematicsData()
-
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike) -> None:
         self.__timestep = timestep
         self.__boat_mass = mass
         self.__inertia = np.array(inertia, dtype=np.float32)
         self.__inertia_inverse = np.linalg.inv(self.__inertia)
+        self.__relative_data = KinematicsData()
+        self.__global_data = KinematicsData()
 
     # Updates the kinematics data and returns the kinematics data objects
-    def step(self, net_force: ArrayLike, net_torque: ArrayLike
-             ) -> Tuple[KinematicsData, KinematicsData]:
+    def step(
+        self, rel_net_force: ArrayLike, net_torque: ArrayLike
+    ) -> Tuple[KinematicsData, KinematicsData]:
+        yaw_radians = self.__update_ang_data(np.array(net_torque, dtype=np.float32))
 
-        yaw_radians = self.__update_ang_data(net_torque)
+        self.__update_linear_relative_data(np.array(rel_net_force, dtype=np.float32))
 
-        next_relative_acceleration, next_relative_velocity = \
-            self.__update_linear_relative_data(net_force)
-
-        self.__update_linear_global_data(
-            next_relative_acceleration, next_relative_velocity, yaw_radians
-            )
+        # z-directional acceleration and velocity are neglected
+        glo_net_force = rel_net_force * np.array([np.cos(yaw_radians), np.sin(yaw_radians), 0])
+        self.__update_linear_global_data(glo_net_force)
 
         return (self.relative_data, self.global_data)
 
     def __update_ang_data(self, net_torque: ArrayLike) -> Scalar:
         next_ang_acceleration = utils.bound_to_180(
-            self.__compute_next_ang_acceleration(net_torque), isDegrees=False
-            )
+            KinematicsFormulas.next_ang_acceleration(net_torque, self.inertia_inverse)
+        )
         next_ang_velocity = utils.bound_to_180(
-            self.__compute_next_velocity(
-                self.global_data.angular_velocity, self.global_data.angular_acceleration
-                ),
-            isDegrees=False
+            KinematicsFormulas.next_velocity(
+                self.global_data.angular_velocity,
+                self.global_data.angular_acceleration,
+                self.timestep,
             )
+        )
         next_ang_position = utils.bound_to_180(
-            self.__compute_next_position(
+            KinematicsFormulas.next_position(
                 self.global_data.angular_position,
                 self.global_data.angular_velocity,
-                self.global_data.angular_acceleration
-                ),
-            isDegrees=False
+                self.global_data.angular_acceleration,
+                self.timestep,
             )
+        )
 
         self.__relative_data.angular_acceleration = next_ang_acceleration
         self.__relative_data.angular_velocity = next_ang_velocity
@@ -66,50 +67,37 @@ class BoatKinematics:
 
         return yaw_radians
 
-    def __update_linear_relative_data(self, net_force: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
-        next_relative_acceleration = self.__compute_next_relative_acceleration(
+    def __update_linear_relative_data(self, net_force: ArrayLike) -> None:
+        next_relative_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
-            )
-        next_relative_velocity = self.__compute_next_velocity(
-            self.relative_data.linear_velocity, self.relative_data.linear_acceleration
-            )
+        )
+        next_relative_velocity = KinematicsFormulas.next_velocity(
+            self.relative_data.linear_velocity,
+            self.relative_data.linear_acceleration,
+            self.timestep,
+        )
 
         self.__relative_data.linear_acceleration = next_relative_acceleration
         self.__relative_data.linear_velocity = next_relative_velocity
         self.__relative_data.linear_position[:] = 0  # linear position is unused
 
-        return (next_relative_acceleration, next_relative_velocity)
-
-    def __update_linear_global_data(self, next_relative_acceleration: ArrayLike,
-                                    next_relative_velocity: ArrayLike,
-                                    yaw_radians: Scalar) -> None:
-
-        # z-directional acceleration and velocity are neglected
-        next_global_acceleration = next_relative_acceleration * \
-            np.array([np.cos(yaw_radians), np.sin(yaw_radians), 0])
-        next_global_velocity = next_relative_velocity * \
-            np.array([np.cos(yaw_radians), np.sin(yaw_radians), 0])
-        next_global_position = self.__compute_next_position(
+    def __update_linear_global_data(self, net_force: ArrayLike) -> None:
+        next_global_acceleration = KinematicsFormulas.next_lin_acceleration(
+            self.boat_mass, net_force
+        )
+        next_global_velocity = KinematicsFormulas.next_velocity(
+            self.global_data.linear_velocity, self.global_data.linear_acceleration, self.timestep
+        )
+        next_global_position = KinematicsFormulas.next_position(
             self.global_data.linear_position,
             self.global_data.linear_velocity,
-            self.global_data.linear_acceleration
-            )
+            self.global_data.linear_acceleration,
+            self.timestep,
+        )
 
         self.__global_data.linear_acceleration = next_global_acceleration
         self.__global_data.linear_velocity = next_global_velocity
         self.__global_data.linear_position = next_global_position
-
-    def __compute_next_position(self, pos: ArrayLike, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        return pos + (vel * self.timestep) + (acc * (self.timestep**2 / 2))
-
-    def __compute_next_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        return vel + (acc * self.timestep)
-
-    def __compute_next_relative_acceleration(self, mass: float, net_force: ArrayLike) -> ArrayLike:
-        return net_force / mass
-
-    def __compute_next_ang_acceleration(self, net_torque: ArrayLike) -> ArrayLike:
-        return self.inertia_inverse @ net_torque
 
     @property
     def relative_data(self) -> KinematicsData:

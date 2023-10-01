@@ -1,18 +1,20 @@
 """This module represents the state of the boat at a given step in time."""
 
 from typing import Tuple
+
+import numpy as np
 from numpy.typing import ArrayLike
+
 from boat_simulator.common.types import Scalar
 from boat_simulator.nodes.physics_engine.kinematics_computation import BoatKinematics
 from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
-import numpy as np
 
 
 class BoatState:
     # Private class member defaults
     __kinematics_computation = BoatKinematics(
         timestep=1.0, mass=1.0, inertia=np.identity(n=3, dtype=np.float32)
-        )
+    )
 
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
         self.__kinematics_computation = BoatKinematics(timestep, mass, inertia)
@@ -21,8 +23,9 @@ class BoatState:
         raise NotImplementedError()
 
     # Updates the kinematics data and returns the kinematics data objects
-    def step(self, net_force: ArrayLike, net_torque: ArrayLike
-             ) -> Tuple[KinematicsData, KinematicsData]:
+    def step(
+        self, net_force: ArrayLike, net_torque: ArrayLike
+    ) -> Tuple[KinematicsData, KinematicsData]:
         return self.__kinematics_computation.step(net_force, net_torque)
 
     @property

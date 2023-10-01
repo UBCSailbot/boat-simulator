@@ -52,7 +52,7 @@ PHYSICS_ENGINE_PUBLISHERS = PhysicsEnginePublisherTopics()
 PHYSICS_ENGINE_SUBSCRIPTIONS = PhysicsEngineSubscriptionTopics()
 
 # Enumerated orientation indices since indexing pitch, roll, and yaw could be arbitrary
-ORIENTATION_INDICES = Enum("ORIENTATION_INDICES", ["PITCH", "ROLL", "YAW"])  # x, y, x
+ORIENTATION_INDICES = Enum("ORIENTATION_INDICES", ["PITCH", "ROLL", "YAW"], start=0)  # x, y, x
 
 # How often the sail action client requests a sail actuation
 SAIL_ACTUATION_REQUEST_PERIOD_SEC = 10  # TODO Make this a ROS parameter
