@@ -1,6 +1,7 @@
 """Tests classes and functions in boat_simulator/common/unit_conversions.py"""
 
 import math
+import numpy as np
 
 import pytest
 
@@ -341,3 +342,21 @@ class TestUnitConverter:
         converted_values = unit_convertor.convert(rad_to_degrees=rad_to_degrees)
 
         assert math.isclose(converted_values["rad_to_degrees"], expected_result, abs_tol=1e-6)
+
+    @pytest.mark.parametrize(
+        "km_to_m, expected_result",
+        [
+            ([0, 0, 0], [0, 0, 0]),
+            ([0, 1, 2], [0, 1000, 2000]),
+            ([], []),
+            ([1], [1000]),
+        ],
+    )
+    def test_convert_arraylike(self, km_to_m, expected_result):
+        unit_convertor = UnitConverter(
+            km_to_m=ConversionFactors.km_to_m,
+        )
+
+        converted_values = unit_convertor.convert(km_to_m=np.array(km_to_m))
+
+        assert np.array_equal(converted_values["km_to_m"], np.array(expected_result))

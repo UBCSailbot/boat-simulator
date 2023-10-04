@@ -6,7 +6,9 @@ import math
 from enum import Enum
 from typing import Dict
 
-from boat_simulator.common.types import EnumAttr, Scalar
+import numpy.typing as npt
+
+from boat_simulator.common.types import EnumAttr
 
 
 class ConversionFactor:
@@ -14,37 +16,37 @@ class ConversionFactor:
     supported by this class.
 
     Attributes:
-        `factor` (Scalar): The conversion factor to go from unit A to B.
-        `inverse_factor` (Scalar): The conversion factor to go from unit B to A.
+        `factor` (npt.ArrayLike): The conversion factor to go from unit A to B.
+        `inverse_factor` (npt.ArrayLike): The conversion factor to go from unit B to A.
     """
 
-    def __init__(self, factor: Scalar):
+    def __init__(self, factor: npt.ArrayLike):
         """Initializes an instance of `ConversionFactor`.
 
         Args:
-            factor (Scalar): Conversion factor from unit A to B.
+            factor (npt.ArrayLike): Conversion factor from unit A to B.
         """
         self.__factor = factor
 
-    def forward_convert(self, value: Scalar) -> Scalar:
+    def forward_convert(self, value: npt.ArrayLike) -> npt.ArrayLike:
         """Convert from unit A to B.
 
         Args:
-            value (Scalar): Value with unit A to be converted.
+            value (npt.ArrayLike): Value with unit A to be converted.
 
         Returns:
-            Scalar: Converted value with unit B.
+            npt.ArrayLike: Converted value with unit B.
         """
         return value * self.factor
 
-    def backward_convert(self, value: Scalar) -> Scalar:
+    def backward_convert(self, value: npt.ArrayLike) -> npt.ArrayLike:
         """Convert from unit B to A.
 
         Args:
-            value (Scalar): Value with unit B to be converted.
+            value (npt.ArrayLike): Value with unit B to be converted.
 
         Returns:
-            Scalar: Converted value with unit A.
+            npt.ArrayLike: Converted value with unit A.
         """
         return value * self.inverse_factor
 
@@ -81,11 +83,11 @@ class ConversionFactor:
         return self.__mul__(other)
 
     @property
-    def factor(self) -> Scalar:
+    def factor(self) -> npt.ArrayLike:
         return self.__factor
 
     @property
-    def inverse_factor(self) -> Scalar:
+    def inverse_factor(self) -> npt.ArrayLike:
         return 1 / self.factor
 
 
@@ -201,19 +203,20 @@ class UnitConverter:
         for attr_name, attr_val in kwargs.items():
             setattr(self, attr_name, attr_val)
 
-    def convert(self, **kwargs: Scalar) -> Dict[str, Scalar]:
+    def convert(self, **kwargs: npt.ArrayLike) -> Dict[str, npt.ArrayLike]:
         """Perform unit conversions for multiple specified values.
 
         Pre-Condition:
             Unit conversions are only done on comparable units. Ex: Length to length
 
         Args:
-            kwargs (Dict[str, Scalar]): Dictionary keys are strictly names of attributes belonging
-                to this class. Dictionary values are the values to be converted, using the
-                conversion factor corresponding to the class attribute.
+            kwargs (Dict[str, npt.ArrayLike]): Dictionary keys are strictly names
+            of attributes belonging to this class.
+            Dictionary values are the values to be converted, using the
+            conversion factor corresponding to the class attribute.
 
         Returns:
-            Dict[str, Scalar]: Converted values. Dictionary keys are class attribute names
+            Dict[str, npt.ArrayLike]: Converted values. Dictionary keys are class attribute names
                 corresponding to the converted value. Dictionary values are the converted values.
         """
         converted_values = {}
