@@ -8,7 +8,7 @@ from typing import Dict
 
 import numpy.typing as npt
 
-from boat_simulator.common.types import EnumAttr
+from boat_simulator.common.types import EnumAttr, Scalar
 
 
 class ConversionFactor:
@@ -16,15 +16,15 @@ class ConversionFactor:
     supported by this class.
 
     Attributes:
-        `factor` (npt.ArrayLike): The conversion factor to go from unit A to B.
-        `inverse_factor` (npt.ArrayLike): The conversion factor to go from unit B to A.
+        `factor` (Scalar): The conversion factor to go from unit A to B.
+        `inverse_factor` (Scalar): The conversion factor to go from unit B to A.
     """
 
-    def __init__(self, factor: npt.ArrayLike):
+    def __init__(self, factor: Scalar):
         """Initializes an instance of `ConversionFactor`.
 
         Args:
-            factor (npt.ArrayLike): Conversion factor from unit A to B.
+            factor (Scalar): Conversion factor from unit A to B.
         """
         self.__factor = factor
 
@@ -32,10 +32,10 @@ class ConversionFactor:
         """Convert from unit A to B.
 
         Args:
-            value (npt.ArrayLike): Value with unit A to be converted.
+            value (npt.ArrayLike): Values with unit A to be converted.
 
         Returns:
-            npt.ArrayLike: Converted value with unit B.
+            npt.ArrayLike: Converted values with unit B.
         """
         return value * self.factor
 
@@ -43,10 +43,10 @@ class ConversionFactor:
         """Convert from unit B to A.
 
         Args:
-            value (npt.ArrayLike): Value with unit B to be converted.
+            value (npt.ArrayLike): Values with unit B to be converted.
 
         Returns:
-            npt.ArrayLike: Converted value with unit A.
+            npt.ArrayLike: Converted values with unit A.
         """
         return value * self.inverse_factor
 
@@ -83,11 +83,11 @@ class ConversionFactor:
         return self.__mul__(other)
 
     @property
-    def factor(self) -> npt.ArrayLike:
+    def factor(self) -> Scalar:
         return self.__factor
 
     @property
-    def inverse_factor(self) -> npt.ArrayLike:
+    def inverse_factor(self) -> Scalar:
         return 1 / self.factor
 
 
