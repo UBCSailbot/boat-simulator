@@ -101,7 +101,7 @@ class MVGaussianGenerator(VectorGenerator):
 
     Attributes:
         mean (ArrayLike): The mean of the gaussian distribution. Shape should be (N,).
-        cov (ArrayLike): The covairance matrix of the gaussian distribution. Should be positive
+        cov (ArrayLike): The covariance matrix of the gaussian distribution. Should be positive
             semi-definite and have a shape of (N,N).
         value (ArrayLike): The latest generated array.
 
@@ -114,7 +114,7 @@ class MVGaussianGenerator(VectorGenerator):
         Args:
             mean (ArrayLike): The mean of the gaussian distribution. Shape should be (N,).
             cov (ArrayLike): The covariance matrix of the gaussian distribution. Should be positive
-                semo-definite and have a shape of (N,N).
+                semi-definite and have a shape of (N,N).
             seed (int, optional): The seed that seeds the random number generator. Defaults to 0.
         """
         super().__init__(seed=seed)
@@ -161,7 +161,3 @@ class ConstantGenerator(VectorGenerator):
     @property
     def constant(self) -> ArrayLike:
         return self.__constant
-
-
-MVGG = MVGaussianGenerator(np.array([1, 1]), np.array([[1, 0], [0, 1]]))
-print(MVGG.next())
