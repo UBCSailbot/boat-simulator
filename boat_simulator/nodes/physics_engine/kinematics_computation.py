@@ -13,7 +13,26 @@ from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFo
 
 
 class BoatKinematics:
+    """Computes and stores kinematic data of the boat at different time steps.
+
+    Attributes:
+        `timestep` (float): The time interval for calculations.
+        `boat_mass` (float): The mass of the boat.
+        `inertia` (array-like): The inertia matrix of the boat.
+        `inertia_inverse` (array-like): The inverse of the inertia matrix.
+        `relative_data` (KinematicsData): Kinematic data of the boat in the relative reference
+        frame.
+        `global_data` (KinematicsData): Kinematic data of the boat in the global reference frame.
+    """
+
     def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike) -> None:
+        """Initializes an instance of `BoatKinematics`.
+
+        Args:
+            timestep (Scalar): The time interval for calculations.
+            mass (Scalar): The mass of the boat.
+            inertia (ArrayLike): The inertia of the boat.
+        """
         self.__timestep = timestep
         self.__boat_mass = mass
         self.__inertia = np.array(inertia, dtype=np.float32)
@@ -21,13 +40,23 @@ class BoatKinematics:
         self.__relative_data = KinematicsData()
         self.__global_data = KinematicsData()
 
-    # Updates the kinematics data and returns the kinematics data objects
     def step(
         self, rel_net_force: ArrayLike, net_torque: ArrayLike
     ) -> Tuple[KinematicsData, KinematicsData]:
-        yaw_radians = self.__update_ang_data(np.array(net_torque, dtype=np.float32))
+        """Updates the kinematic data based on applied forces and torques.
 
-        self.__update_linear_relative_data(np.array(rel_net_force, dtype=np.float32))
+        Args:
+            rel_net_force (ArrayLike): The net force acting on the boat in the relative frame.
+            net_torque (ArrayLike): The net torque acting on the boat.
+
+        Returns:
+            Tuple[KinematicsData, KinematicsData]: A tuple containing updated kinematic data, with
+            the first element representing data in the relative reference frame and the second
+            element representing data in the global reference frame.
+        """
+        yaw_radians = self.__update_ang_data(net_torque)
+
+        self.__update_linear_relative_data(rel_net_force)
 
         # z-directional acceleration and velocity are neglected
         glo_net_force = rel_net_force * np.array([np.cos(yaw_radians), np.sin(yaw_radians), 0])
@@ -36,6 +65,15 @@ class BoatKinematics:
         return (self.relative_data, self.global_data)
 
     def __update_ang_data(self, net_torque: ArrayLike) -> Scalar:
+        """Update the angular kinematics data.
+
+        Args:
+            net_torque (ArrayLike): The net torque acting on the boat.
+
+        Returns:
+            Scalar: The next angular position along the yaw axis (in radians) in the global
+            reference frame.
+        """
         next_ang_acceleration = utils.bound_to_180(
             KinematicsFormulas.next_ang_acceleration(net_torque, self.inertia_inverse)
         )
@@ -68,6 +106,12 @@ class BoatKinematics:
         return yaw_radians
 
     def __update_linear_relative_data(self, net_force: ArrayLike) -> None:
+        """Updates the linear kinematic data in the relative reference frame.
+
+        Args:
+            net_force (ArrayLike): The net force acting on the boat in the relative reference
+            frame.
+        """
         next_relative_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
         )
@@ -82,6 +126,11 @@ class BoatKinematics:
         self.__relative_data.linear_position[:] = 0  # linear position is unused
 
     def __update_linear_global_data(self, net_force: ArrayLike) -> None:
+        """Updates the linear kinematic data in the global reference frame.
+
+        Args:
+            net_force (ArrayLike): The net force acting on the boat in the global reference frame.
+        """
         next_global_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
         )

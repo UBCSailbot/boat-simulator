@@ -17,18 +17,14 @@ from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFo
 
 @dataclass
 class ExpectedData:
+    """Stores expected kinematic data, including position, velocity, and acceleration.."""
+
     position: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
     velocity: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
     acceleration: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
 
 
 class TestKinematicsComputation:
-    @dataclass
-    class ExpectedData:
-        position: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
-        velocity: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
-        acceleration: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
-
     def __test_ang_kinematics(
         self,
         timestep: Scalar,
@@ -38,6 +34,14 @@ class TestKinematicsComputation:
         relative_data: KinematicsData,
         global_data: KinematicsData,
     ) -> Tuple[KinematicsData, Scalar]:
+        """Verifies that the actual angular kinematic data matches the expected values and computes
+        the next global angular position in radians.
+
+        Returns:
+            Tuple[KinematicsData, Scalar]: A tuple containing an updated `prev_expected_data`
+            with kinematic data from this step (position 0) and the yaw angle in radians for the
+            next global angular position.
+        """
         expected_ang_acc = utils.bound_to_180(
             KinematicsFormulas.next_ang_acceleration(net_torque, inertia_inverse)
         )
@@ -83,6 +87,11 @@ class TestKinematicsComputation:
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
     ) -> KinematicsData:
+        """Verifies that the actual relative linear kinematic data matches the expected values.
+
+        Returns:
+            ExpectedData: An updated `prev_expected_data` with kinematic data from this step.
+        """
         expected_rel_lin_acc = KinematicsFormulas.next_lin_acceleration(mass, net_force)
         assert np.isclose(actual_data.linear_acceleration, expected_rel_lin_acc).all()
 
@@ -118,6 +127,11 @@ class TestKinematicsComputation:
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
     ) -> KinematicsData:
+        """Verifies that the actual global linear kinematic data matches the expected values.
+
+        Returns:
+            KinematicsData: An updated `prev_expected_data` with kinematic data from this step.
+        """
         expected_glo_lin_acc = KinematicsFormulas.next_lin_acceleration(mass, net_force)
         assert np.isclose(actual_data.linear_acceleration, expected_glo_lin_acc).all()
 
@@ -165,6 +179,9 @@ class TestKinematicsComputation:
         ],
     )
     def test_boat_kinematics(self, timestep, mass, inertia, rel_net_force, net_torque, num_steps):
+        """Test the boat kinematics simulation by iterating through multiple time steps
+        and verifying the computed kinematic data."""
+
         inertia_inverse = np.linalg.inv(inertia)
         boat_kinematics = BoatKinematics(timestep, mass, inertia)
 
