@@ -1,5 +1,0 @@
-launch:
-
-# Launch the Physics Engine Node
-- include:
-    file: "$(find-pkg-share boat_simulator)/physics_engine_launch.yaml"
