@@ -13,4 +13,4 @@ EnumAttr = TypeVar("EnumAttr", bound=Enum)
 Scalar = Union[int, float]
 
 # Used in cases where support for scalars or arrays of scalars are needed.
-ScalarOrArray = Union[Scalar, NDArray[np.int], NDArray[np.float]]
+ScalarOrArray = Union[Scalar, NDArray[np.int32], NDArray[np.float32]]
