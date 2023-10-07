@@ -6,9 +6,7 @@ import math
 from enum import Enum
 from typing import Dict
 
-from numpy.typing import NDArray
-
-from boat_simulator.common.types import EnumAttr, Scalar
+from boat_simulator.common.types import EnumAttr, Scalar, ScalarOrArray
 
 
 class ConversionFactor:
@@ -28,25 +26,25 @@ class ConversionFactor:
         """
         self.__factor = factor
 
-    def forward_convert(self, value: Scalar | NDArray) -> Scalar | NDArray:
+    def forward_convert(self, value: ScalarOrArray) -> ScalarOrArray:
         """Convert from unit A to B.
 
         Args:
-            value (Scalar | NDArray): Values with unit A to be converted.
+            value (ScalarOrArray): Values with unit A to be converted.
 
         Returns:
-            Scalar | NDArray: Converted values with unit B.
+            ScalarOrArray: Converted values with unit B.
         """
         return value * self.factor
 
-    def backward_convert(self, value: Scalar | NDArray) -> Scalar | NDArray:
+    def backward_convert(self, value: ScalarOrArray) -> ScalarOrArray:
         """Convert from unit B to A.
 
         Args:
-            value (Scalar | NDArray): Values with unit B to be converted.
+            value (ScalarOrArray): Values with unit B to be converted.
 
         Returns:
-            Scalar | NDArray: Converted values with unit A.
+            ScalarOrArray: Converted values with unit A.
         """
         return value * self.inverse_factor
 
@@ -203,20 +201,20 @@ class UnitConverter:
         for attr_name, attr_val in kwargs.items():
             setattr(self, attr_name, attr_val)
 
-    def convert(self, **kwargs: Scalar | NDArray) -> Dict[str, Scalar | NDArray]:
+    def convert(self, **kwargs: ScalarOrArray) -> Dict[str, ScalarOrArray]:
         """Perform unit conversions for multiple specified values.
 
         Pre-Condition:
-            Unit conversions are only done on comparable Scalar | NDArray. Ex: Length to length
+            Unit conversions are only done on comparable ScalarOrArray. Ex: Length to length
 
         Args:
-            kwargs (Dict[str, Scalar | NDArray]): Dictionary keys are strictly names
+            kwargs (Dict[str, ScalarOrArray]): Dictionary keys are strictly names
             of attributes belonging to this class.
             Dictionary values are the values to be converted, using the
             conversion factor corresponding to the class attribute.
 
         Returns:
-            Dict[str, Scalar | NDArray]: Converted values. Dictionary keys are class attribute
+            Dict[str, ScalarOrArray]: Converted values. Dictionary keys are class attribute
             names corresponding to the converted value. Dictionary values are the converted values.
         """
         converted_values = {}
