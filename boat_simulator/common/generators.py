@@ -1,12 +1,11 @@
 """Random vector generator classes."""
 
 from abc import ABC, abstractmethod
-from typing import Union
 
 import numpy as np
 from numpy.typing import NDArray
 
-from boat_simulator.common.types import Scalar
+from boat_simulator.common.types import Scalar, ScalarOrArray
 
 
 class VectorGenerator(ABC):
@@ -29,21 +28,21 @@ class VectorGenerator(ABC):
         self.__seed = seed
         self.__rng = np.random.default_rng(seed=seed)
 
-    def next(self) -> Union[Scalar, NDArray]:
+    def next(self) -> ScalarOrArray:
         """Generates the next value in the sequence. This function acts as an alias to the
         function _next().
 
         Returns:
-            Union[Scalar, NDArray]: Generated value.
+            ScalarOrArray: Generated value.
         """
         return self._next()
 
     @abstractmethod
-    def _next(self) -> Union[Scalar, NDArray]:
+    def _next(self) -> ScalarOrArray:
         """Generates the next value in the sequence.
 
         Returns:
-            Union[Scalar, NDArray]: Generated array.
+            ScalarOrArray: Generated array.
         """
         pass
 
@@ -145,25 +144,25 @@ class ConstantGenerator(VectorGenerator):
     """This class returns the same specified value when asked to generate a new value.
 
     Attributes:
-        constant (Union[Scalar, NDArray]): The constant value to return upon generation. It can
+        constant (ScalarOrArray): The constant value to return upon generation. It can
             either be a scalar or an array.
 
     Extends: VectorGenerator
     """
 
-    def __init__(self, constant: Union[Scalar, NDArray]):
+    def __init__(self, constant: ScalarOrArray):
         """Initializes an instance of ConstantGenerator.
 
         Args:
-            constant (Union[Scalar, NDArray]): The constant value to return upon generation. It can
+            constant (ScalarOrArray): The constant value to return upon generation. It can
                 either be a scalar or an array.
         """
         super().__init__(seed=0)
         self.__constant = constant
 
-    def _next(self) -> Union[Scalar, NDArray]:
+    def _next(self) -> ScalarOrArray:
         raise NotImplementedError()
 
     @property
-    def constant(self) -> Union[Scalar, NDArray]:
+    def constant(self) -> ScalarOrArray:
         return self.__constant
