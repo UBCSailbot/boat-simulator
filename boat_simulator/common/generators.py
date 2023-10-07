@@ -1,47 +1,49 @@
 """Random vector generator classes."""
 
 from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from boat_simulator.common.types import Scalar
 
 
 class VectorGenerator(ABC):
-    """This class's purpose is to generate random arrays. It acts as a base class for other random
-    array generators.
+    """This class's purpose is to generate values in a sequence. It acts as a base class for other
+    generators.
 
     Attributes:
         seed (int): The seed used to seed the random number generator.
-        rng (?): The seeded random number generator
+        rng (np.random.Generator): The seeded random number generator.
     """
 
     def __init__(self, seed: int = 0):
         """Initializes an instance of `VectorGenerator`. Note that this class cannot be
-        instantiated directly.
+        instantiated directly since it is abstract.
 
         Args:
-            seed (int, optional): The seed used to seed the random number generator. Defaults to 0.
+            seed (int, optional): The seed used to seed the random number generator
+                (if used at all). Defaults to 0.
         """
         self.__seed = seed
         self.__rng = np.random.default_rng(seed=seed)
 
-    def next(self) -> ArrayLike:
-        """Generates the next random array in the sequence. This function acts as an alias to the
+    def next(self) -> Union[Scalar, NDArray]:
+        """Generates the next value in the sequence. This function acts as an alias to the
         function _next().
 
         Returns:
-            ArrayLike: Random array.
+            Union[Scalar, NDArray]: Generated value.
         """
         return self._next()
 
     @abstractmethod
-    def _next(self) -> ArrayLike:
-        """Generates the next random array in the sequence.
+    def _next(self) -> Union[Scalar, NDArray]:
+        """Generates the next value in the sequence.
 
         Returns:
-            ArrayLike: Random array.
+            Union[Scalar, NDArray]: Generated array.
         """
         pass
 
@@ -50,7 +52,7 @@ class VectorGenerator(ABC):
         return self.__seed
 
     @property
-    def rng(self):
+    def rng(self) -> np.random.Generator:
         return self.__rng
 
 
@@ -100,20 +102,20 @@ class MVGaussianGenerator(VectorGenerator):
     """This class generates random vectors using a multivariate gaussian distribution.
 
     Attributes:
-        mean (ArrayLike): The mean of the gaussian distribution. Shape should be (N,).
-        cov (ArrayLike): The covariance matrix of the gaussian distribution. Should be positive
+        mean (NDArray): The mean of the gaussian distribution. Shape should be (N,).
+        cov (NDArray): The covariance matrix of the gaussian distribution. Should be positive
             semi-definite and have a shape of (N,N).
-        value (ArrayLike): The latest generated array.
+        value (NDArray): The latest generated array.
 
     Extends: VectorGenerator
     """
 
-    def __init__(self, mean: ArrayLike, cov: ArrayLike, seed: int = 0):
+    def __init__(self, mean: NDArray, cov: NDArray, seed: int = 0):
         """Initializes an instance of MVGaussianGenerator.
 
         Args:
-            mean (ArrayLike): The mean of the gaussian distribution. Shape should be (N,).
-            cov (ArrayLike): The covariance matrix of the gaussian distribution. Should be positive
+            mean (NDArray): The mean of the gaussian distribution. Shape should be (N,).
+            cov (NDArray): The covariance matrix of the gaussian distribution. Should be positive
                 semi-definite and have a shape of (N,N).
             seed (int, optional): The seed that seeds the random number generator. Defaults to 0.
         """
@@ -122,42 +124,46 @@ class MVGaussianGenerator(VectorGenerator):
         self.__cov = cov
         self.next()
 
-    def _next(self) -> ArrayLike:
+    def _next(self) -> NDArray:
         self.__value = self.rng.multivariate_normal(self.mean, self.cov)
         return self.__value
 
     @property
-    def mean(self) -> ArrayLike:
+    def mean(self) -> NDArray:
         return self.__mean
 
     @property
-    def cov(self) -> ArrayLike:
+    def cov(self) -> NDArray:
         return self.__cov
 
     @property
-    def value(self) -> ArrayLike:
+    def value(self) -> NDArray:
         return self.__value
 
 
 class ConstantGenerator(VectorGenerator):
-    """This class returns the same specified when asked to generate a new value.
+    """This class returns the same specified value when asked to generate a new value.
 
     Attributes:
-        constant (ArrayLike): The constant array to return upon array generation.
+        constant (Union[Scalar, NDArray]): The constant value to return upon generation. It can
+            either be a scalar or an array.
+
+    Extends: VectorGenerator
     """
 
-    def __init__(self, constant: ArrayLike):
+    def __init__(self, constant: Union[Scalar, NDArray]):
         """Initializes an instance of ConstantGenerator.
 
         Args:
-            constant (ArrayLike): The constant array to return upon array generation.
+            constant (Union[Scalar, NDArray]): The constant value to return upon generation. It can
+                either be a scalar or an array.
         """
         super().__init__(seed=0)
         self.__constant = constant
 
-    def _next(self) -> ArrayLike:
+    def _next(self) -> Union[Scalar, NDArray]:
         raise NotImplementedError()
 
     @property
-    def constant(self) -> ArrayLike:
+    def constant(self) -> Union[Scalar, NDArray]:
         return self.__constant
