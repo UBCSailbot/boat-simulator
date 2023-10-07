@@ -6,7 +6,7 @@ import math
 from enum import Enum
 from typing import Dict
 
-import numpy.typing as npt
+from numpy.typing import ArrayLike
 
 from boat_simulator.common.types import EnumAttr, Scalar
 
@@ -28,25 +28,25 @@ class ConversionFactor:
         """
         self.__factor = factor
 
-    def forward_convert(self, value: npt.ArrayLike) -> npt.ArrayLike:
+    def forward_convert(self, value: ArrayLike) -> ArrayLike:
         """Convert from unit A to B.
 
         Args:
-            value (npt.ArrayLike): Values with unit A to be converted.
+            value (ArrayLike): Values with unit A to be converted.
 
         Returns:
-            npt.ArrayLike: Converted values with unit B.
+            ArrayLike: Converted values with unit B.
         """
         return value * self.factor
 
-    def backward_convert(self, value: npt.ArrayLike) -> npt.ArrayLike:
+    def backward_convert(self, value: ArrayLike) -> ArrayLike:
         """Convert from unit B to A.
 
         Args:
-            value (npt.ArrayLike): Values with unit B to be converted.
+            value (ArrayLike): Values with unit B to be converted.
 
         Returns:
-            npt.ArrayLike: Converted values with unit A.
+            ArrayLike: Converted values with unit A.
         """
         return value * self.inverse_factor
 
@@ -203,20 +203,20 @@ class UnitConverter:
         for attr_name, attr_val in kwargs.items():
             setattr(self, attr_name, attr_val)
 
-    def convert(self, **kwargs: npt.ArrayLike) -> Dict[str, npt.ArrayLike]:
+    def convert(self, **kwargs: ArrayLike) -> Dict[str, ArrayLike]:
         """Perform unit conversions for multiple specified values.
 
         Pre-Condition:
             Unit conversions are only done on comparable units. Ex: Length to length
 
         Args:
-            kwargs (Dict[str, npt.ArrayLike]): Dictionary keys are strictly names
+            kwargs (Dict[str, ArrayLike]): Dictionary keys are strictly names
             of attributes belonging to this class.
             Dictionary values are the values to be converted, using the
             conversion factor corresponding to the class attribute.
 
         Returns:
-            Dict[str, npt.ArrayLike]: Converted values. Dictionary keys are class attribute names
+            Dict[str, ArrayLike]: Converted values. Dictionary keys are class attribute names
                 corresponding to the converted value. Dictionary values are the converted values.
         """
         converted_values = {}
