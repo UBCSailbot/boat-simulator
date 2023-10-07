@@ -3,7 +3,7 @@
 from typing import Tuple
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 import boat_simulator.common.constants as constants
 import boat_simulator.common.utils as utils
@@ -16,43 +16,50 @@ class BoatKinematics:
     """Computes and stores kinematic data of the boat at different time steps.
 
     Attributes:
-        `timestep` (float): The time interval for calculations.
-        `boat_mass` (float): The mass of the boat.
-        `inertia` (array-like): The inertia matrix of the boat.
-        `inertia_inverse` (array-like): The inverse of the inertia matrix.
-        `relative_data` (KinematicsData): Kinematic data of the boat in the relative reference
-        frame.
-        `global_data` (KinematicsData): Kinematic data of the boat in the global reference frame.
+        `timestep` (Scalar): The time interval for calculations, expressed in seconds (s).
+        `boat_mass` (Scalar): The mass of the boat, expressed in kilograms (kg).
+        `inertia` (NDArray): The inertia of the boat, expressed in kilograms-meters squared
+            (kg•m^2).
+        `inertia_inverse` (NDArray): The inverse of the inertia matrix, expressed in
+            kilograms-meters squared (kg•m^2).
+        `relative_data` (KinematicsData): Kinematics data in the relative reference frame, using
+            SI units.
+        `global_data` (KinematicsData): Kinematics data in the global reference frame, using SI
+            units.
     """
 
-    def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike) -> None:
+    def __init__(self, timestep: Scalar, mass: Scalar, inertia: NDArray) -> None:
         """Initializes an instance of `BoatKinematics`.
 
         Args:
-            timestep (Scalar): The time interval for calculations.
-            mass (Scalar): The mass of the boat.
-            inertia (ArrayLike): The inertia of the boat.
+            timestep (Scalar): The time interval for calculations in seconds (s).
+            mass (Scalar): The mass of the boat in kilograms (kg).
+            inertia (NDArray): The inertia of the boat, expressed in kilograms-meters squared
+                (kg•m^2).
         """
         self.__timestep = timestep
         self.__boat_mass = mass
-        self.__inertia = np.array(inertia, dtype=np.float32)
-        self.__inertia_inverse = np.linalg.inv(self.__inertia)
+        assert inertia.shape == (3, 3)
+        self.__inertia = inertia
+        self.__inertia_inverse = np.linalg.inv(inertia)
         self.__relative_data = KinematicsData()
         self.__global_data = KinematicsData()
 
     def step(
-        self, rel_net_force: ArrayLike, net_torque: ArrayLike
+        self, rel_net_force: NDArray, net_torque: NDArray
     ) -> Tuple[KinematicsData, KinematicsData]:
         """Updates the kinematic data based on applied forces and torques.
 
         Args:
-            rel_net_force (ArrayLike): The net force acting on the boat in the relative frame.
-            net_torque (ArrayLike): The net torque acting on the boat.
+            rel_net_force (NDArray): The net force acting on the boat in the relative frame,
+                expressed in newtons (N).
+            net_torque (NDArray): The net torque acting on the boat, expressed in newton-meters
+                (N•m).
 
         Returns:
-            Tuple[KinematicsData, KinematicsData]: A tuple containing updated kinematic data, with
-            the first element representing data in the relative reference frame and the second
-            element representing data in the global reference frame.
+            Tuple[KinematicsData, KinematicsData]: A tuple containing updated kinematic data. The
+                first element represents data in the relative reference frame, and the second
+                element represents data in the global reference frame, both using SI units.
         """
         yaw_radians = self.__update_ang_data(net_torque)
 
@@ -64,25 +71,25 @@ class BoatKinematics:
 
         return (self.relative_data, self.global_data)
 
-    def __update_ang_data(self, net_torque: ArrayLike) -> Scalar:
+    def __update_ang_data(self, net_torque: NDArray) -> Scalar:
         """Update the angular kinematics data.
 
         Args:
-            net_torque (ArrayLike): The net torque acting on the boat.
+            net_torque (NDArray): The net torque acting on the boat, expressed in newton-meters
+                (N•m).
 
         Returns:
-            Scalar: The next angular position along the yaw axis (in radians) in the global
-            reference frame.
+            Scalar: The next angular position along the yaw axis in the global reference frame,
+                expressed in radians (rad).
         """
-        next_ang_acceleration = utils.bound_to_180(
-            KinematicsFormulas.next_ang_acceleration(net_torque, self.inertia_inverse)
+        next_ang_acceleration = KinematicsFormulas.next_ang_acceleration(
+            net_torque, self.inertia_inverse
         )
-        next_ang_velocity = utils.bound_to_180(
-            KinematicsFormulas.next_velocity(
-                self.global_data.angular_velocity,
-                self.global_data.angular_acceleration,
-                self.timestep,
-            )
+
+        next_ang_velocity = KinematicsFormulas.next_velocity(
+            self.global_data.angular_velocity,
+            self.global_data.angular_acceleration,
+            self.timestep,
         )
         next_ang_position = utils.bound_to_180(
             KinematicsFormulas.next_position(
@@ -90,7 +97,8 @@ class BoatKinematics:
                 self.global_data.angular_velocity,
                 self.global_data.angular_acceleration,
                 self.timestep,
-            )
+            ),
+            isDegrees=False,
         )
 
         self.__relative_data.angular_acceleration = next_ang_acceleration
@@ -105,12 +113,12 @@ class BoatKinematics:
 
         return yaw_radians
 
-    def __update_linear_relative_data(self, net_force: ArrayLike) -> None:
+    def __update_linear_relative_data(self, net_force: NDArray) -> None:
         """Updates the linear kinematic data in the relative reference frame.
 
         Args:
-            net_force (ArrayLike): The net force acting on the boat in the relative reference
-            frame.
+            net_force (NDArray): The net force acting on the boat in the relative reference
+                frame, expressed in newtons (N).
         """
         next_relative_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
@@ -125,11 +133,12 @@ class BoatKinematics:
         self.__relative_data.linear_velocity = next_relative_velocity
         self.__relative_data.linear_position[:] = 0  # linear position is unused
 
-    def __update_linear_global_data(self, net_force: ArrayLike) -> None:
+    def __update_linear_global_data(self, net_force: NDArray) -> None:
         """Updates the linear kinematic data in the global reference frame.
 
         Args:
-            net_force (ArrayLike): The net force acting on the boat in the global reference frame.
+            net_force (NDArray): The net force acting on the boat in the global reference frame in
+                newtons.
         """
         next_global_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
@@ -161,11 +170,11 @@ class BoatKinematics:
         return self.__timestep
 
     @property
-    def inertia(self) -> ArrayLike:
+    def inertia(self) -> NDArray:
         return self.__inertia
 
     @property
-    def inertia_inverse(self) -> ArrayLike:
+    def inertia_inverse(self) -> NDArray:
         return self.__inertia_inverse
 
     @property

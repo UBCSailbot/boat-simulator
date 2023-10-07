@@ -5,7 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import pytest
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 import boat_simulator.common.constants as constants
 import boat_simulator.common.utils as utils
@@ -19,17 +19,17 @@ from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFo
 class ExpectedData:
     """Stores expected kinematic data, including position, velocity, and acceleration.."""
 
-    position: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
-    velocity: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
-    acceleration: Field[ArrayLike] = field(default=np.zeros(3, dtype=np.float32))
+    position: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
+    velocity: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
+    acceleration: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
 
 
 class TestKinematicsComputation:
     def __test_ang_kinematics(
         self,
         timestep: Scalar,
-        inertia_inverse: ArrayLike,
-        net_torque: ArrayLike,
+        inertia_inverse: NDArray,
+        net_torque: NDArray,
         prev_expected_data: ExpectedData,
         relative_data: KinematicsData,
         global_data: KinematicsData,
@@ -38,23 +38,22 @@ class TestKinematicsComputation:
         the next global angular position in radians.
 
         Returns:
-            Tuple[KinematicsData, Scalar]: A tuple containing an updated `prev_expected_data`
-            with kinematic data from this step (position 0) and the yaw angle in radians for the
-            next global angular position.
+            Tuple[KinematicsData, Scalar]: A tuple where the first element represents an updated
+                `prev_expected_data` with kinematic data from this step, using SI units. The second
+                element represents the yaw angle in radians (rad) for the next global angular
+                position.
         """
-        expected_ang_acc = utils.bound_to_180(
-            KinematicsFormulas.next_ang_acceleration(net_torque, inertia_inverse)
-        )
+        expected_ang_acc = KinematicsFormulas.next_ang_acceleration(net_torque, inertia_inverse)
+
         assert np.isclose(relative_data.angular_acceleration, expected_ang_acc).all()
         assert np.isclose(global_data.angular_acceleration, expected_ang_acc).all()
 
-        expected_ang_vel = utils.bound_to_180(
-            KinematicsFormulas.next_velocity(
-                prev_expected_data.velocity,
-                prev_expected_data.acceleration,
-                timestep,
-            )
+        expected_ang_vel = KinematicsFormulas.next_velocity(
+            prev_expected_data.velocity,
+            prev_expected_data.acceleration,
+            timestep,
         )
+
         assert np.isclose(relative_data.angular_velocity, expected_ang_vel).all()
         assert np.isclose(global_data.angular_velocity, expected_ang_vel).all()
 
@@ -64,7 +63,8 @@ class TestKinematicsComputation:
                 prev_expected_data.velocity,
                 prev_expected_data.acceleration,
                 timestep,
-            )
+            ),
+            isDegrees=False,
         )
         assert np.isclose(
             relative_data.angular_position, np.array([0, 0, 0], dtype=np.float32)
@@ -83,14 +83,15 @@ class TestKinematicsComputation:
         self,
         timestep: Scalar,
         mass: Scalar,
-        net_force: ArrayLike,
+        net_force: NDArray,
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
     ) -> KinematicsData:
         """Verifies that the actual relative linear kinematic data matches the expected values.
 
         Returns:
-            ExpectedData: An updated `prev_expected_data` with kinematic data from this step.
+            ExpectedData: An updated `prev_expected_data` with kinematic data from this step, using
+                SI units.
         """
         expected_rel_lin_acc = KinematicsFormulas.next_lin_acceleration(mass, net_force)
         assert np.isclose(actual_data.linear_acceleration, expected_rel_lin_acc).all()
@@ -123,14 +124,15 @@ class TestKinematicsComputation:
         self,
         timestep: Scalar,
         mass: Scalar,
-        net_force: ArrayLike,
+        net_force: NDArray,
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
     ) -> KinematicsData:
         """Verifies that the actual global linear kinematic data matches the expected values.
 
         Returns:
-            KinematicsData: An updated `prev_expected_data` with kinematic data from this step.
+            KinematicsData: An updated `prev_expected_data` with kinematic data from this step,
+                using SI units.
         """
         expected_glo_lin_acc = KinematicsFormulas.next_lin_acceleration(mass, net_force)
         assert np.isclose(actual_data.linear_acceleration, expected_glo_lin_acc).all()
