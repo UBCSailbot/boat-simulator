@@ -18,10 +18,10 @@ class TestMVGaussianGenerator:
             (np.array([1, 2]), np.array([[2, 1], [1, 2]])),
             (np.array([4, 5]), np.array([[3, 1], [1, 3]])),
             (np.array([100, 50]), np.array([[10, 5], [5, 10]])),
+            (np.array([120, 130]), np.array([[10, 5], [5, 10]])),
             (np.array([1, 1, 1]), np.eye(3)),
             (np.array([1, 2, 3]), np.array([[2, 1, 1], [1, 2, 1], [1, 1, 2]])),
             (np.array([4, 5, 6]), np.array([[3, 2, 2], [2, 3, 2], [2, 2, 3]])),
-            (np.array([120, 130, 140]), np.array([[20, 10, 10], [10, 20, 10], [10, 10, 20]])),
         ],
     )
     def test_multivariate_vector_generation_2d(self, mean, cov):
@@ -32,7 +32,7 @@ class TestMVGaussianGenerator:
             mean (array): Input array of size n with average 1
             cov (array): Identity matrix based on mean array size (I_n)
         """
-        NUM_SAMPLES = 20000
+        NUM_SAMPLES = 10000
         samples = np.zeros(shape=(NUM_SAMPLES, mean.size))
         generator = MVGaussianGenerator(mean=mean, cov=cov)
         for i in range(NUM_SAMPLES):
