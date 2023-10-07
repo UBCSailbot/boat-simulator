@@ -1,5 +1,4 @@
 """Tests classes and functions in boat_simulator/common/generators.py"""
-import math
 
 import numpy as np
 import pytest
