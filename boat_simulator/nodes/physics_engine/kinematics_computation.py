@@ -32,8 +32,8 @@ class BoatKinematics:
         """Initializes an instance of `BoatKinematics`.
 
         Args:
-            timestep (Scalar): The time interval for calculations in seconds (s).
-            mass (Scalar): The mass of the boat in kilograms (kg).
+            timestep (Scalar): The time interval for calculations, expressed in seconds (s).
+            mass (Scalar): The mass of the boat, expressed in kilograms (kg).
             inertia (NDArray): The inertia of the boat, expressed in kilograms-meters squared
                 (kg•m^2).
         """
@@ -137,8 +137,8 @@ class BoatKinematics:
         """Updates the linear kinematic data in the global reference frame.
 
         Args:
-            net_force (NDArray): The net force acting on the boat in the global reference frame in
-                newtons.
+            net_force (NDArray): The net force acting on the boat in the global reference frame,
+                expressed in newtons (N).
         """
         next_global_acceleration = KinematicsFormulas.next_lin_acceleration(
             self.boat_mass, net_force
