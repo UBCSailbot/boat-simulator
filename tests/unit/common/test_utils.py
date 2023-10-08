@@ -2,6 +2,7 @@
 
 import math
 
+import numpy as np
 import pytest
 
 from boat_simulator.common import utils
@@ -40,18 +41,36 @@ def test_degrees_to_rad(test_input, expected_output):
 
 
 @pytest.mark.parametrize(
-    "test_input1, test_input2, expected_output",
+    "angle, isDegrees, expected_output",
     [
-        ([0, 2 * math.pi], True, [0, 0]),
-        ([3 / 2 * math.pi, -2.5 * math.pi], True, [-0.5 * math.pi, -0.5 * math.pi]),
-        ([3 * math.pi, -3 * math.pi], True, [-math.pi, -math.pi]),
-        ([4.44 * math.pi, -5.68 * math.pi], True, [0.44 * math.pi, 0.32 * math.pi]),
-        ([1 / 36 * math.pi, -0.334 * math.pi], True, [1 / 36 * math.pi, -0.334 * math.pi]),
-        ([0, 270, -450, 360], False, [0, -90, -90, 0]),
-        ([540, -540, 899, -899, 5, -30], False, [-180, -180, 179, -179, 5, -30]),
+        # Degree tests
+        (0, True, 0),
+        (270, True, -90),
+        (-450, True, -90),
+        (360, True, 0),
+        (
+            np.array([540, -540, 899, -899, 5, -30]),
+            True,
+            np.array([-180, -180, 179, -179, 5, -30]),
+        ),
+        # Radian tests
+        (0, False, 0),
+        (2 * math.pi, False, 0),
+        (3 / 2 * math.pi, False, -0.5 * math.pi),
+        (-2.5 * math.pi, False, -0.5 * math.pi),
+        (np.array([3 * math.pi, -3 * math.pi]), False, np.array([-math.pi, -math.pi])),
+        (
+            np.array([4.44 * math.pi, -5.68 * math.pi]),
+            False,
+            np.array([0.44 * math.pi, 0.32 * math.pi]),
+        ),
+        (
+            np.array([1 / 36 * math.pi, -0.334 * math.pi]),
+            False,
+            np.array([1 / 36 * math.pi, -0.334 * math.pi]),
+        ),
     ],
 )
-def test_bound_to_180(test_input1, test_input2, expected_output):
-    actual_output = utils.bound_to_180(test_input1, test_input2)
-    for actual_angle, expected_angle in zip(actual_output, expected_output):
-        assert math.isclose(actual_angle, expected_angle)
+def test_bound_to_180(angle, isDegrees, expected_output):
+    actual_output = utils.bound_to_180(angle, isDegrees)
+    assert np.isclose(actual_output, expected_output).all()
