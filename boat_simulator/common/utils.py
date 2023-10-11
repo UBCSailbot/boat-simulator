@@ -1,8 +1,10 @@
 """Useful functions that could be used anywhere in the boat simulator package."""
 
 import math
+from typing import Union, overload
 
-from numpy.typing import ArrayLike
+import numpy as np
+from numpy.typing import NDArray
 
 from boat_simulator.common.types import Scalar, ScalarOrArray
 
@@ -31,7 +33,19 @@ def degrees_to_rad(angle: Scalar) -> Scalar:
     return angle * (math.pi / 180)
 
 
-def bound_to_180(angle: ScalarOrArray, isDegrees: bool = True) -> ArrayLike:
+@overload
+def bound_to_180(angle: Scalar, isDegrees: bool = True) -> Scalar:
+    ...
+
+
+@overload
+def bound_to_180(
+    angle: NDArray[Union[np.int32, np.float32]], isDegrees: bool = True
+) -> NDArray[Union[np.int32, np.float32]]:
+    ...
+
+
+def bound_to_180(angle: ScalarOrArray, isDegrees: bool = True) -> ScalarOrArray:
     """Converts all angles to be within the range [-180, 180) degrees or [-π, π) radians.
 
     Args:
@@ -40,7 +54,7 @@ def bound_to_180(angle: ScalarOrArray, isDegrees: bool = True) -> ArrayLike:
             Defaults to True.
 
     Returns:
-        ArrayLike: Bounded angle(s). Output unit matches `isDegrees`.
+        ScalarOrArray: Bounded angle(s). Output unit matches `isDegrees`.
     """
     bound = 180 if isDegrees else math.pi
     return angle - 2 * bound * ((angle + bound) // (2 * bound))
