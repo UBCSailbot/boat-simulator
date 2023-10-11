@@ -11,16 +11,16 @@ class KinematicsData:
     """Stores both linear and angular kinematic information pertaining to the boat.
 
     Attributes:
-        `linear_position` (Field[NDArray]): Linear position of the boat, expressed in meters (m).
-        `linear_velocity` (Field[NDArray]): Linear velocity of the boat, expressed in meters per
+        `linear_position` (NDArray): Linear position of the boat, expressed in meters (m).
+        `linear_velocity` (NDArray): Linear velocity of the boat, expressed in meters per
             second (m/s).
-        `linear_acceleration` (Field[NDArray]): Linear acceleration of the boat, expressed in
+        `linear_acceleration` (NDArray): Linear acceleration of the boat, expressed in
             meters per second squared (m/s^2).
-        `angular_position` (Field[NDArray]): Angular position of the boat, expressed in radians
+        `angular_position` (NDArray): Angular position of the boat, expressed in radians
             (rad).
-        `angular_velocity` (Field[NDArray]): Angular velocity of the boat, expressed in radians
+        `angular_velocity` (NDArray): Angular velocity of the boat, expressed in radians
             per second (rad/s).
-        `angular_acceleration` (Field[NDArray]): Angular acceleration of the boat, expressed in
+        `angular_acceleration` (NDArray): Angular acceleration of the boat, expressed in
             radians per second squared (rad/s^2).
     """
 

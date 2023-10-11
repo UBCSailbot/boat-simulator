@@ -2,7 +2,7 @@
 
 import importlib
 import os
-from typing import List
+from typing import List, Tuple
 
 from launch_ros.actions import Node
 
@@ -45,11 +45,11 @@ def generate_launch_description() -> LaunchDescription:
     )
 
 
-def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
-    """Gets the global launch arguments defined in the global launch file.
+def get_global_launch_arguments() -> Tuple:
+    """Gets the global launch arguments and environment variables from the global launch file.
 
     Returns:
-        List[LaunchDescriptionEntity]: List of global launch argument objects.
+        Tuple: The global launch arguments and environment variables.
     """
     ros_workspace = os.getenv("ROS_WORKSPACE", default="/workspaces/sailbot_workspace")
     global_main_launch = os.path.join(ros_workspace, "src", "global_launch", "main_launch.py")
@@ -60,7 +60,7 @@ def get_global_launch_arguments() -> List[LaunchDescriptionEntity]:
     spec.loader.exec_module(module)  # type: ignore[union-attr] # spec is not None
     global_launch_arguments = module.GLOBAL_LAUNCH_ARGUMENTS
     global_environment_vars = module.ENVIRONMENT_VARIABLES
-    return global_launch_arguments, global_environment_vars  # type: ignore[return-value] # no type
+    return global_launch_arguments, global_environment_vars
 
 
 def setup_launch(context: LaunchContext) -> List[LaunchDescriptionEntity]:
