@@ -1,6 +1,6 @@
 """Tests classes and functions in boat_simulator/nodes/physics_engine/kinematics_computation.py"""
 
-from dataclasses import Field, dataclass, field
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import numpy as np
@@ -17,11 +17,11 @@ from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFo
 
 @dataclass
 class ExpectedData:
-    """Stores expected kinematic data, including position, velocity, and acceleration.."""
+    """Stores expected kinematic data, including position, velocity, and acceleration."""
 
-    position: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
-    velocity: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
-    acceleration: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
+    position: NDArray = field(default=np.zeros(3, dtype=np.float32))
+    velocity: NDArray = field(default=np.zeros(3, dtype=np.float32))
+    acceleration: NDArray = field(default=np.zeros(3, dtype=np.float32))
 
 
 class TestKinematicsComputation:
@@ -33,12 +33,12 @@ class TestKinematicsComputation:
         prev_expected_data: ExpectedData,
         relative_data: KinematicsData,
         global_data: KinematicsData,
-    ) -> Tuple[KinematicsData, Scalar]:
+    ) -> Tuple[ExpectedData, Scalar]:
         """Verifies that the actual angular kinematic data matches the expected values and computes
         the next global angular position in radians.
 
         Returns:
-            Tuple[KinematicsData, Scalar]: A tuple where the first element represents an updated
+            Tuple[ExpectedData, Scalar]: A tuple where the first element represents an updated
                 `prev_expected_data` with kinematic data from this step, using SI units. The second
                 element represents the yaw angle in radians (rad) for the next global angular
                 position.
@@ -76,7 +76,7 @@ class TestKinematicsComputation:
         prev_expected_data.velocity = expected_ang_vel
         prev_expected_data.position = expected_ang_pos
 
-        yaw_radians = expected_ang_pos[constants.ORIENTATION_INDICES.YAW.value]
+        yaw_radians: Scalar = expected_ang_pos[constants.ORIENTATION_INDICES.YAW.value]
         return (prev_expected_data, yaw_radians)
 
     def __test_rel_lin_kinematics(
@@ -86,7 +86,7 @@ class TestKinematicsComputation:
         net_force: NDArray,
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
-    ) -> KinematicsData:
+    ) -> ExpectedData:
         """Verifies that the actual relative linear kinematic data matches the expected values.
 
         Returns:
@@ -127,11 +127,11 @@ class TestKinematicsComputation:
         net_force: NDArray,
         prev_expected_data: ExpectedData,
         actual_data: KinematicsData,
-    ) -> KinematicsData:
+    ) -> ExpectedData:
         """Verifies that the actual global linear kinematic data matches the expected values.
 
         Returns:
-            KinematicsData: An updated `prev_expected_data` with kinematic data from this step,
+            ExpectedData: An updated `prev_expected_data` with kinematic data from this step,
                 using SI units.
         """
         expected_glo_lin_acc = KinematicsFormulas.next_lin_acceleration(mass, net_force)

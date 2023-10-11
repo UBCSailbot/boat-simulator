@@ -73,7 +73,7 @@ class BoatState:
 
     @property
     def global_acceleration(self) -> NDArray:
-        self.__kinematics_computation.global_data.linear_acceleration
+        return self.__kinematics_computation.global_data.linear_acceleration
 
     @property
     def relative_velocity(self) -> NDArray:

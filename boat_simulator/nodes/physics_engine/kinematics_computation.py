@@ -91,6 +91,7 @@ class BoatKinematics:
             self.global_data.angular_acceleration,
             self.timestep,
         )
+
         next_ang_position = utils.bound_to_180(
             KinematicsFormulas.next_position(
                 self.global_data.angular_position,

@@ -199,6 +199,7 @@ class UnitConverter:
                 belonging to `ConversionFactors`.
         """
         for attr_name, attr_val in kwargs.items():
+            assert isinstance(attr_val, Enum) and isinstance(attr_val.value, ConversionFactor)
             setattr(self, attr_name, attr_val)
 
     def convert(self, **kwargs: ScalarOrArray) -> Dict[str, ScalarOrArray]:
@@ -214,15 +215,17 @@ class UnitConverter:
             conversion factor corresponding to the class attribute.
 
         Returns:
-            Dict[str, ScalarOrArray]: Converted values. Dictionary keys are class attribute
-            names corresponding to the converted value. Dictionary values are the converted values.
+            Dict[str, ScalarOrArray]: Converted values. Dictionary keys are class
+            attribute names corresponding to the converted value. Dictionary values are the
+            converted values.
         """
-        converted_values = {}
+        converted_values: Dict[str, ScalarOrArray] = {}
 
         for attr_name, attr_val in kwargs.items():
-            conversion_factor = getattr(self, attr_name, None).value
-            converted_values[attr_name] = (
-                None if conversion_factor is None else conversion_factor.forward_convert(attr_val)
-            )
+            attr = getattr(self, attr_name, None)
+            assert attr is not None, f"Attribute name {attr} not found in UnitConverter."
+
+            conversion_factor = attr.value
+            converted_values[attr_name] = conversion_factor.forward_convert(attr_val)
 
         return converted_values
