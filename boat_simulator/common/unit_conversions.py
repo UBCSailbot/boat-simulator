@@ -217,10 +217,11 @@ class UnitConverter:
             Dict[str, ScalarOrArray]: Converted values. Dictionary keys are class attribute
             names corresponding to the converted value. Dictionary values are the converted values.
         """
-        converted_values = {}
+        converted_values: Dict[str, ScalarOrArray] = {}
 
         for attr_name, attr_val in kwargs.items():
-            conversion_factor = getattr(self, attr_name, None).value
+            attr = getattr(self, attr_name, None)
+            conversion_factor = attr.value if attr is not None else None
             converted_values[attr_name] = (
                 None if conversion_factor is None else conversion_factor.forward_convert(attr_val)
             )

@@ -16,4 +16,4 @@ class WindGenerator(FluidGenerator):
         super().__init__()
 
     def next(self) -> ArrayLike:
-        pass
+        return []

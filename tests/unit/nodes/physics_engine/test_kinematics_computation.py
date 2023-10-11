@@ -1,6 +1,6 @@
 """Tests classes and functions in boat_simulator/nodes/physics_engine/kinematics_computation.py"""
 
-from dataclasses import Field, dataclass, field
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import numpy as np
@@ -19,9 +19,9 @@ from boat_simulator.nodes.physics_engine.kinematics_formulas import KinematicsFo
 class ExpectedData:
     """Stores expected kinematic data, including position, velocity, and acceleration.."""
 
-    position: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
-    velocity: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
-    acceleration: Field[NDArray] = field(default=np.zeros(3, dtype=np.float32))
+    position: NDArray = field(default=np.zeros(3, dtype=np.float32))
+    velocity: NDArray = field(default=np.zeros(3, dtype=np.float32))
+    acceleration: NDArray = field(default=np.zeros(3, dtype=np.float32))
 
 
 class TestKinematicsComputation:
