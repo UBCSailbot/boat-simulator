@@ -10,7 +10,7 @@ import boat_simulator.common.constants as Constants
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.launch_context import LaunchContext
 from launch.launch_description import LaunchDescription
-from launch.launch_description_entity import LaunchDescriptionEntity
+from launch.some_substitutions_type import SomeSubstitutionsType
 from launch.substitutions import LaunchConfiguration
 
 # Local launch arguments and constants
@@ -63,7 +63,7 @@ def get_global_launch_arguments() -> Tuple:
     return global_launch_arguments, global_environment_vars
 
 
-def setup_launch(context: LaunchContext) -> List[LaunchDescriptionEntity]:
+def setup_launch(context: LaunchContext) -> List[Node]:
     """Collects launch descriptions that describe the system behavior in the `boat_simulator`
     package.
 
@@ -90,11 +90,11 @@ def get_physics_engine_description(context: LaunchContext) -> Node:
     """
     node_name = "physics_engine_node"
     ros_parameters = [LaunchConfiguration("config").perform(context)]
-    ros_arguments = [
+    ros_arguments: List[SomeSubstitutionsType] = [
         "--log-level",
         [f"{node_name}:=", LaunchConfiguration("log_level")],
     ]
-    local_arguments = [
+    local_arguments: List[SomeSubstitutionsType] = [
         Constants.MULTITHREADING_CLI_ARG_NAME,
         [LaunchConfiguration("enable_sim_multithreading")],
     ]
@@ -122,11 +122,11 @@ def get_low_level_control_description(context: LaunchContext) -> Node:
     """
     node_name = "low_level_control_node"
     ros_parameters = [LaunchConfiguration("config").perform(context)]
-    ros_arguments = [
+    ros_arguments: List[SomeSubstitutionsType] = [
         "--log-level",
         [f"{node_name}:=", LaunchConfiguration("log_level")],
     ]
-    local_arguments = [
+    local_arguments: List[SomeSubstitutionsType] = [
         Constants.MULTITHREADING_CLI_ARG_NAME,
         [LaunchConfiguration("enable_sim_multithreading")],
     ]
