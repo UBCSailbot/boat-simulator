@@ -83,6 +83,19 @@ class LowLevelControlNode(Node):
             namespace="",
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.disable_actuation", rclpy.Parameter.Type.BOOL),
+                ("rudder.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.actuation_execution_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.pid.kp", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.pid.ki", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.pid.kd", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.pid.buffer_size", rclpy.Parameter.Type.INTEGER),
+                ("wingsail.disable_actuation", rclpy.Parameter.Type.BOOL),
+                ("wingsail.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
+                ("wingsail.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("wingsail.actuation_execution_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("wingsail.actuation_speed_deg_per_sec", rclpy.Parameter.Type.DOUBLE),
             ],
         )
 
