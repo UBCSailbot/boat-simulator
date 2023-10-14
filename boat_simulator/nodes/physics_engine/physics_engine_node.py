@@ -118,6 +118,8 @@ class PhysicsEngineNode(Node):
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("wingsail.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("wind_sensor.generator_type", rclpy.Parameter.Type.STRING),
                 ("wind_sensor.gaussian_params.mean", rclpy.Parameter.Type.DOUBLE_ARRAY),
                 ("wind_sensor.gaussian_params.std_dev", rclpy.Parameter.Type.DOUBLE_ARRAY),
@@ -234,14 +236,18 @@ class PhysicsEngineNode(Node):
 
         # Requesting a rudder actuation
         self.create_timer(
-            timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
+            timer_period_sec=self.get_parameter("rudder.actuation_request_period_sec")
+            .get_parameter_value()
+            .double_value,
             callback=self.__rudder_action_send_goal,
             callback_group=self.rudder_action_callback_group,
         )
 
         # Requesting a sail actuation
         self.create_timer(
-            timer_period_sec=Constants.SAIL_ACTUATION_REQUEST_PERIOD_SEC,
+            timer_period_sec=self.get_parameter("wingsail.actuation_request_period_sec")
+            .get_parameter_value()
+            .double_value,
             callback=self.__sail_action_send_goal,
             callback_group=self.sail_action_callback_group,
         )

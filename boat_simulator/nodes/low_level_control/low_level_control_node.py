@@ -86,7 +86,6 @@ class LowLevelControlNode(Node):
                 ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.disable_actuation", rclpy.Parameter.Type.BOOL),
                 ("rudder.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
-                ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.actuation_execution_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.pid.kp", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.pid.ki", rclpy.Parameter.Type.DOUBLE),
@@ -94,7 +93,6 @@ class LowLevelControlNode(Node):
                 ("rudder.pid.buffer_size", rclpy.Parameter.Type.INTEGER),
                 ("wingsail.disable_actuation", rclpy.Parameter.Type.BOOL),
                 ("wingsail.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
-                ("wingsail.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("wingsail.actuation_execution_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("wingsail.actuation_speed_deg_per_sec", rclpy.Parameter.Type.DOUBLE),
             ],
@@ -129,10 +127,16 @@ class LowLevelControlNode(Node):
         """
         self.get_logger().debug("Initializing rate objects...")
         self.__rudder_action_feedback_rate = self.create_rate(
-            frequency=Constants.RUDDER_ACTUATION_EXECUTION_PERIOD_SEC, clock=self.get_clock()
+            frequency=self.get_parameter("rudder.actuation_execution_period_sec")
+            .get_parameter_value()
+            .double_value,
+            clock=self.get_clock(),
         )
         self.__sail_action_feedback_rate = self.create_rate(
-            Constants.SAIL_ACTUATION_EXECUTION_PERIOD_SEC, clock=self.get_clock()
+            frequency=self.get_parameter("wingsail.actuation_execution_period_sec")
+            .get_parameter_value()
+            .double_value,
+            clock=self.get_clock(),
         )
 
     def __init_subscriptions(self):
