@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from boat_simulator.common.generators import MVGaussianGenerator
+from boat_simulator.common.generators import ConstantGenerator, MVGaussianGenerator
 
 
 class TestGaussianGenerator:
@@ -45,4 +45,23 @@ class TestMVGaussianGenerator:
 
 
 class TestConstantGenerator:
-    pass
+    @pytest.mark.parametrize(
+        "constant",
+        [
+            (np.array([1]),),
+            (np.array([1, 2]),),
+            (np.array([1, 2, 3]),),
+            (np.array([[1, 1], [1, 1]]),),
+            (np.array([[1, 2, 3], [3, 2, 1]]),),
+        ],
+    )
+    def test_constant_vector_generator(self, constant):
+        """This test compares if the generated vector is exactly
+        the same as the initial vector
+
+        Args:
+            constant (array): The constant array to return upon array generation.
+        """
+        generator = ConstantGenerator(constant=constant)
+        samples = generator.next()
+        assert np.isclose(constant, samples, 0.1).all()

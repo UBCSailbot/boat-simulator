@@ -140,7 +140,7 @@ class MVGaussianGenerator(VectorGenerator):
 
 
 class ConstantGenerator(VectorGenerator):
-    """This class returns the same specified when asked to generate a new value.
+    """This class returns the same specified constant when asked to generate a new value.
 
     Attributes:
         constant (ArrayLike): The constant array to return upon array generation.
@@ -156,7 +156,7 @@ class ConstantGenerator(VectorGenerator):
         self.__constant = constant
 
     def _next(self) -> ArrayLike:
-        raise NotImplementedError()
+        return self.__constant
 
     @property
     def constant(self) -> ArrayLike:
