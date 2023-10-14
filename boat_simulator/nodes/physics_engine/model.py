@@ -1,104 +1,115 @@
-"""Logic that models the physics of the boat."""
+"""This module represents the state of the boat at a given step in time."""
 
 from typing import Tuple
 
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
-import boat_simulator.common.constants as constants
-from boat_simulator.common import utils
 from boat_simulator.common.types import Scalar
+from boat_simulator.nodes.physics_engine.kinematics_computation import BoatKinematics
+from boat_simulator.nodes.physics_engine.kinematics_data import KinematicsData
 
 
 class BoatState:
-    # Private class member defaults
-    __global_position = np.zeros(shape=(3,), dtype=np.float32)
-    __relative_velocity = np.zeros(shape=(3,), dtype=np.float32)
-    __relative_acceleration = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_position = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_velocity = np.zeros(shape=(3,), dtype=np.float32)
-    __angular_acceleration = np.zeros(shape=(3,), dtype=np.float32)
-    __inertia = np.identity(n=3, dtype=np.float32)
-    __boat_mass = 1.0
-    __timestep = 1.0
+    """Represents the state of the boat at a specific point in time, including kinematic data
+    in both relative and global reference frames.
 
-    def __init__(self, timestep: Scalar, mass: Scalar, inertia: ArrayLike):
-        pass
+    Attributes:
+        `kinematics_computation` (BoatKinematics): The kinematic data for the boat in both
+            the relative and global reference frames, used for computing future kinematic data,
+            expressed in SI units.
+    """
 
-    def step(self, wind_vel: ArrayLike) -> None:
-        pass
+    def __init__(self, timestep: Scalar, mass: Scalar, inertia: NDArray):
+        """Initializes an instance of `BoatState`.
 
-    def __compute_net_force_and_torque(self, wind_vel: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+        Args:
+            timestep (Scalar): The time interval for calculations, expressed in seconds (s).
+            mass (Scalar): The mass of the boat, expressed in kilograms (kg).
+            inertia (NDArray): The inertia of the boat, expressed in kilograms-meters squared
+                (kg•m^2).
+        """
+        self.__kinematics_computation = BoatKinematics(timestep, mass, inertia)
+
+    def compute_net_force_and_torque(self, wind_vel: NDArray) -> Tuple[NDArray, NDArray]:
+        """Calculates the net force and net torque acting on the boat due to the wind.
+
+        Args:
+            wind_vel (NDArray): The velocity of the wind, expressed in meters per second (m/s).
+
+        Returns:
+            Tuple[NDArray, NDArray]: A tuple where the first element represents the net force in
+                the relative reference frame, expressed in newtons (N), and the second element
+                represents the net torque, expressed in newton-meters (N•m).
+        """
         raise NotImplementedError()
 
-    def __compute_next_position(self, pos: ArrayLike, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
+    def step(
+        self, rel_net_force: NDArray, net_torque: NDArray
+    ) -> Tuple[KinematicsData, KinematicsData]:
+        """Updates the boat's kinematic data based on applied forces and torques, and returns
+        the updated kinematic data in both relative and global reference frames.
 
-    def __compute_next_relative_velocity(self, vel: ArrayLike, acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
+        Args:
+            rel_net_force (NDArray): The net force acting on the boat in the relative reference
+            frame, expressed in newtons (N).
+            net_torque (NDArray): The net torque acting on the boat, expressed in newton-meters
+                (N•m).
 
-    def __compute_next_relative_acceleration(
-        self, mass: Scalar, net_force: ArrayLike
-    ) -> ArrayLike:
-        raise NotImplementedError()
-
-    def __compute_next_ang_velocity(self, ang_vel: ArrayLike, ang_acc: ArrayLike) -> ArrayLike:
-        raise NotImplementedError()
-
-    def __compute_next_ang_acceleration(
-        self, inertia: ArrayLike, net_torque: ArrayLike
-    ) -> ArrayLike:
-        raise NotImplementedError()
-
-    @property
-    def global_position(self) -> ArrayLike:
-        return self.__global_position
+        Returns:
+            Tuple[KinematicsData, KinematicsData]: A tuple with the first element representing
+                kinematic data in the relative reference frame, and the second element representing
+                data in the global reference frame, both using SI units.
+        """
+        return self.__kinematics_computation.step(rel_net_force, net_torque)
 
     @property
-    def global_velocity(self) -> ArrayLike:
-        yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
-        )
-        return self.relative_velocity * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
+    def global_position(self) -> NDArray:
+        return self.__kinematics_computation.global_data.linear_position
 
     @property
-    def global_acceleration(self) -> ArrayLike:
-        yaw_radians = utils.degrees_to_rad(
-            self.__angular_position[constants.ORIENTATION_INDICES.YAW.value]
-        )
-        return self.relative_acceleration * np.array([np.sin(yaw_radians), np.cos(yaw_radians), 0])
+    def global_velocity(self) -> NDArray:
+        return self.__kinematics_computation.global_data.linear_velocity
 
     @property
-    def relative_velocity(self) -> ArrayLike:
-        return self.__relative_velocity
+    def global_acceleration(self) -> NDArray:
+        return self.__kinematics_computation.global_data.linear_acceleration
 
     @property
-    def relative_acceleration(self) -> ArrayLike:
-        return self.__relative_acceleration
+    def relative_velocity(self) -> NDArray:
+        return self.__kinematics_computation.relative_data.linear_velocity
 
     @property
-    def angular_position(self) -> ArrayLike:
-        return self.__angular_position
+    def relative_acceleration(self) -> NDArray:
+        return self.__kinematics_computation.relative_data.linear_acceleration
 
     @property
-    def angular_velocity(self) -> ArrayLike:
-        return self.__angular_velocity
+    def angular_position(self) -> NDArray:
+        return self.__kinematics_computation.relative_data.angular_position
 
     @property
-    def angular_acceleration(self) -> ArrayLike:
-        return self.__angular_acceleration
+    def angular_velocity(self) -> NDArray:
+        return self.__kinematics_computation.relative_data.angular_velocity
 
     @property
-    def inertia(self) -> ArrayLike:
-        return self.__inertia
+    def angular_acceleration(self) -> NDArray:
+        return self.__kinematics_computation.relative_data.angular_position
+
+    @property
+    def inertia(self) -> NDArray:
+        return self.__kinematics_computation.inertia
+
+    @property
+    def inertia_inverse(self) -> NDArray:
+        return self.__kinematics_computation.inertia_inverse
 
     @property
     def boat_mass(self) -> Scalar:
-        return self.__boat_mass
+        return self.__kinematics_computation.boat_mass
 
     @property
     def timestep(self) -> Scalar:
-        return self.__timestep
+        return self.__kinematics_computation.timestep
 
     @property
     def speed(self) -> Scalar:
