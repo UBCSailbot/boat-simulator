@@ -83,6 +83,7 @@ class LowLevelControlNode(Node):
             namespace="",
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.disable_actuation", rclpy.Parameter.Type.BOOL),
                 ("rudder.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),

@@ -117,6 +117,7 @@ class PhysicsEngineNode(Node):
             namespace="",
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("wind_sensor.generator_type", rclpy.Parameter.Type.STRING),
                 ("wind_sensor.gaussian_params.mean", rclpy.Parameter.Type.DOUBLE_ARRAY),
                 ("wind_sensor.gaussian_params.std_dev", rclpy.Parameter.Type.DOUBLE_ARRAY),
