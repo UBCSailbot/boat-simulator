@@ -119,6 +119,7 @@ class PhysicsEngineNode(Node):
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("info_log_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("action_send_goal_timeout_sec", rclpy.Parameter.Type.DOUBLE),
                 ("qos_depth", rclpy.Parameter.Type.INTEGER),
                 ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("wingsail.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
