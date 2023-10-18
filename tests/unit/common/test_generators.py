@@ -48,6 +48,8 @@ class TestConstantGenerator:
     @pytest.mark.parametrize(
         "constant",
         [
+            2,
+            10111,
             (np.array([1]),),
             (np.array([1, 2]),),
             (np.array([1, 2, 3]),),
