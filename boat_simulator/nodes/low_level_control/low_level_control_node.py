@@ -84,6 +84,8 @@ class LowLevelControlNode(Node):
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
                 ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("info_log_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("qos_depth", rclpy.Parameter.Type.INTEGER),
                 ("rudder.disable_actuation", rclpy.Parameter.Type.BOOL),
                 ("rudder.fixed_angle_deg", rclpy.Parameter.Type.DOUBLE),
                 ("rudder.actuation_execution_period_sec", rclpy.Parameter.Type.DOUBLE),
@@ -149,7 +151,7 @@ class LowLevelControlNode(Node):
             msg_type=GPS,
             topic=Constants.LOW_LEVEL_CTRL_SUBSCRIPTIONS.GPS,
             callback=self.__gps_sub_callback,
-            qos_profile=Constants.QOS_DEPTH,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             callback_group=self.pub_sub_callback_group,
         )
 
@@ -181,7 +183,9 @@ class LowLevelControlNode(Node):
         """
         self.get_logger().info(
             f"Received data from {self.gps_sub.topic}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
         self.__gps = msg
 

@@ -33,12 +33,6 @@ class PhysicsEnginePublisherTopics:
 # Boat simulator ROS action names
 ACTION_NAMES = Actions()
 
-# How long the action clients wait for the server before timing out
-ACTION_SEND_GOAL_TIMEOUT_SEC = 2
-
-# Limits the info logs to avoid overwhelming the terminal ( it's really more for us humans :-) )
-INFO_LOG_THROTTLE_PERIOD_SEC = 2
-
 # ROS topic names for the low level control node subscriptions
 LOW_LEVEL_CTRL_SUBSCRIPTIONS = LowLevelControlSubscriptionTopics()
 
@@ -59,6 +53,3 @@ SAIL_ACTUATION_NUM_LOOP_EXECUTIONS = 10  # TODO This is a placeholder until the 
 
 # Number of times the rudder action server routine's main loop executes
 RUDDER_ACTUATION_NUM_LOOP_EXECUTIONS = 10  # TODO This is a placeholder until the PID is integrated
-
-# The maximum number of subscription messages to queue for further processing
-QOS_DEPTH = 1
