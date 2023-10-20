@@ -117,6 +117,17 @@ class PhysicsEngineNode(Node):
             namespace="",
             parameters=[
                 ("pub_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("logging_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("info_log_throttle_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("action_send_goal_timeout_sec", rclpy.Parameter.Type.DOUBLE),
+                ("qos_depth", rclpy.Parameter.Type.INTEGER),
+                ("rudder.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("wingsail.actuation_request_period_sec", rclpy.Parameter.Type.DOUBLE),
+                ("wind_sensor.generator_type", rclpy.Parameter.Type.STRING),
+                ("wind_sensor.gaussian_params.mean", rclpy.Parameter.Type.DOUBLE_ARRAY),
+                ("wind_sensor.gaussian_params.std_dev", rclpy.Parameter.Type.DOUBLE_ARRAY),
+                ("wind_sensor.gaussian_params.corr_xy", rclpy.Parameter.Type.DOUBLE),
+                ("wind_sensor.constant_params.value", rclpy.Parameter.Type.DOUBLE_ARRAY),
             ],
         )
 
@@ -169,7 +180,7 @@ class PhysicsEngineNode(Node):
             msg_type=DesiredHeading,
             topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.DESIRED_HEADING,
             callback=self.__desired_heading_sub_callback,
-            qos_profile=Constants.QOS_DEPTH,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             callback_group=self.sub_callback_group,
         )
 
@@ -181,17 +192,17 @@ class PhysicsEngineNode(Node):
         self.__gps_pub = self.create_publisher(
             msg_type=GPS,
             topic=Constants.PHYSICS_ENGINE_PUBLISHERS.GPS,
-            qos_profile=Constants.QOS_DEPTH,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
         )
         self.__wind_sensors_pub = self.create_publisher(
             msg_type=WindSensors,
             topic=Constants.PHYSICS_ENGINE_PUBLISHERS.WIND_SENSORS,
-            qos_profile=Constants.QOS_DEPTH,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
         )
         self.__kinematics_pub = self.create_publisher(
             msg_type=SimWorldState,
             topic=Constants.PHYSICS_ENGINE_PUBLISHERS.KINEMATICS,
-            qos_profile=Constants.QOS_DEPTH,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
         )
 
     def __init_action_clients(self):
@@ -228,14 +239,18 @@ class PhysicsEngineNode(Node):
 
         # Requesting a rudder actuation
         self.create_timer(
-            timer_period_sec=Constants.RUDDER_ACTUATION_REQUEST_PERIOD_SEC,
+            timer_period_sec=self.get_parameter("rudder.actuation_request_period_sec")
+            .get_parameter_value()
+            .double_value,
             callback=self.__rudder_action_send_goal,
             callback_group=self.rudder_action_callback_group,
         )
 
         # Requesting a sail actuation
         self.create_timer(
-            timer_period_sec=Constants.SAIL_ACTUATION_REQUEST_PERIOD_SEC,
+            timer_period_sec=self.get_parameter("wingsail.actuation_request_period_sec")
+            .get_parameter_value()
+            .double_value,
             callback=self.__sail_action_send_goal,
             callback_group=self.sail_action_callback_group,
         )
@@ -262,7 +277,9 @@ class PhysicsEngineNode(Node):
         self.gps_pub.publish(msg)
         self.get_logger().info(
             f"Publishing to {self.gps_pub.topic}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
 
     def __publish_wind_sensors(self):
@@ -282,7 +299,9 @@ class PhysicsEngineNode(Node):
         self.wind_sensors_pub.publish(msg)
         self.get_logger().info(
             f"Publishing to {self.wind_sensors_pub.topic}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
 
     def __publish_kinematics(self):
@@ -320,7 +339,9 @@ class PhysicsEngineNode(Node):
 
         self.get_logger().info(
             f"Publishing to {self.kinematics_pub.topic}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
 
     # SUBSCRIPTION CALLBACKS
@@ -332,7 +353,9 @@ class PhysicsEngineNode(Node):
         """
         self.get_logger().info(
             f"Received data from {self.desired_heading_sub.topic}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
         self.__desired_heading = msg
 
@@ -350,15 +373,19 @@ class PhysicsEngineNode(Node):
         goal_msg = SimRudderActuation.Goal()
         goal_msg.desired_heading = self.desired_heading
 
+        action_send_goal_timeout_sec = (
+            self.get_parameter("action_send_goal_timeout_sec").get_parameter_value().double_value
+        )
+
         # Wait for the action server to be ready (the low-level control node)
         is_request_timed_out = not self.rudder_actuation_action_client.wait_for_server(
-            timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
+            timeout_sec=action_send_goal_timeout_sec
         )
 
         if is_request_timed_out:
             self.get_logger().warn(
                 "Rudder actuation action goal request timed out after "
-                + f"{Constants.ACTION_SEND_GOAL_TIMEOUT_SEC} seconds. Aborting..."
+                + f"{action_send_goal_timeout_sec} seconds. Aborting..."
             )
         else:
             send_goal_future = self.rudder_actuation_action_client.send_goal_async(
@@ -406,7 +433,9 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(
             f"Received rudder angle of {self.rudder_angle:.2f} rad from action "
             + f"{self.rudder_actuation_action_client._action_name}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
 
     # SAIL ACTUATION ACTION CLIENT CALLBACKS
@@ -424,15 +453,19 @@ class PhysicsEngineNode(Node):
         goal_msg = SimSailTrimTabActuation.Goal()
         goal_msg.desired_angular_position = 0.0
 
+        action_send_goal_timeout_sec = (
+            self.get_parameter("action_send_goal_timeout_sec").get_parameter_value().double_value
+        )
+
         # Wait for the action server to be ready (the low-level control node)
         is_request_timed_out = not self.sail_actuation_action_client.wait_for_server(
-            timeout_sec=Constants.ACTION_SEND_GOAL_TIMEOUT_SEC
+            timeout_sec=action_send_goal_timeout_sec
         )
 
         if is_request_timed_out:
             self.get_logger().warn(
                 "Sail actuation action goal request timed out after "
-                + f"{Constants.ACTION_SEND_GOAL_TIMEOUT_SEC} seconds. Aborting..."
+                + f"{action_send_goal_timeout_sec} seconds. Aborting..."
             )
         else:
             send_goal_future = self.sail_actuation_action_client.send_goal_async(
@@ -482,7 +515,9 @@ class PhysicsEngineNode(Node):
         self.get_logger().info(
             f"Received sail trim tab angle of {self.sail_trim_tab_angle:.2f} rad from action "
             + f"{self.sail_actuation_action_client._action_name}",
-            throttle_duration_sec=Constants.INFO_LOG_THROTTLE_PERIOD_SEC,
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
         )
 
     # CLASS PROPERTY PUBLIC GETTERS
