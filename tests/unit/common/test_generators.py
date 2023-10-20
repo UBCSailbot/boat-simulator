@@ -48,13 +48,15 @@ class TestConstantGenerator:
     @pytest.mark.parametrize(
         "constant",
         [
-            2,
+            50.22,
             10111,
+            12.3456789,
             (np.array([1]),),
-            (np.array([1, 2]),),
-            (np.array([1, 2, 3]),),
-            (np.array([[1, 1], [1, 1]]),),
-            (np.array([[1, 2, 3], [3, 2, 1]]),),
+            (np.array([1, 2.2568]),),
+            (np.array([1 * 7 / 6, 2.75, 3]),),
+            (np.array([[1.0001, 1], [1, 1.5674]]),),
+            (np.array([[1091237, 12319.6], [784520, 1]]),),
+            (np.array([[1.3333, 2.6666, 3.9999], [3.0001, 2, 1]]),),
         ],
     )
     def test_constant_vector_generator(self, constant):
