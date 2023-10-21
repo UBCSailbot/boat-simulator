@@ -13,9 +13,21 @@ from boat_simulator.common.generators import (
 class TestGaussianGenerator:
     @pytest.mark.parametrize(
         "mean, stdev, threshold",
-        [(1, 1, 0.2), (1, 0, 0.2), (-1, 0, 0.2), (4, 5, 0.2), (120, 120, 10)],
+        [(1.0, 1.0, 0.2), (10, 0.0, 0.0), (-1.0, 0.0, 0.2), (4.2, 5.1, 0.2), (120.0, 120.0, 10.0)],
     )
-    def test_gaussian_generator(self, mean, stdev, threshold):
+    def test_gaussian_generator(self, mean: float, stdev: float, threshold):
+        """
+        This test compares the mean and standard deviation computed from an array
+        of generated sequence of scalars originating from the GaussianGenerator to the expected
+
+        Args:
+            mean (float): Describes the mean of the Gaussian distribution used
+            by the GaussianGenerator.
+            stdev (float): Describes the standard deviation of the Gaussian distribution
+            used by the GaussianGenerator.
+            threshold (float): Threshold allowed between expected mean and standard deviation
+            to computed mean and standard deviation.
+        """
         NUM_SAMPLES = 50000
 
         samples = np.zeros(NUM_SAMPLES)
