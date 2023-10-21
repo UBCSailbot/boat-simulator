@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+
 from boat_simulator.common.generators import (
     ConstantGenerator,
     GaussianGenerator,
