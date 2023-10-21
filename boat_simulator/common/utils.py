@@ -79,10 +79,10 @@ def bound_to_360(angle: ScalarOrArray, isDegrees: bool = True) -> ScalarOrArray:
         elif bound_angle == bound:
             bound_angle = 0
     else:
-        for x in bound_angle:
-            if x < 0:
-                x += bound
-            elif x == bound:
-                x = 0
+        for element_angle in bound_angle:
+            if element_angle < 0:
+                element_angle += bound
+            elif element_angle == bound:
+                element_angle = 0
 
     return bound_angle
