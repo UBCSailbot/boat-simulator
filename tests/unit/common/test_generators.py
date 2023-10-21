@@ -3,11 +3,29 @@
 import numpy as np
 import pytest
 
-from boat_simulator.common.generators import MVGaussianGenerator
+from boat_simulator.common.generators import GaussianGenerator, MVGaussianGenerator
 
 
 class TestGaussianGenerator:
-    pass
+    @pytest.mark.parametrize(
+        "mean, stdev, threshold",
+        [(1, 1, 0.2), (1, 0, 0.2), (-1, 0, 0.2), (4, 5, 0.2), (120, 120, 1)],
+    )
+    def test_gaussian_generator(self, mean, stdev, threshold):
+        NUM_SAMPLES = 50000
+
+        samples = np.zeros(NUM_SAMPLES)
+
+        generator = GaussianGenerator(mean=mean, stdev=stdev)
+
+        for i in range(NUM_SAMPLES):
+            samples[i] = generator.next()
+
+        sample_mean = np.mean(samples)
+        sample_std = np.std(samples)
+
+        assert np.allclose(sample_std, stdev, atol=threshold)
+        assert np.allclose(sample_mean, mean, atol=threshold)
 
 
 class TestMVGaussianGenerator:

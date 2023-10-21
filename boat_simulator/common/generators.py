@@ -81,7 +81,8 @@ class GaussianGenerator(VectorGenerator):
         self.next()
 
     def _next(self) -> Scalar:
-        raise NotImplementedError()
+        self.__value = np.random.normal(self.mean, self.stdev)
+        return self.__value
 
     @property
     def mean(self) -> Scalar:
@@ -93,8 +94,7 @@ class GaussianGenerator(VectorGenerator):
 
     @property
     def value(self) -> Scalar:
-        # TODO Assign self.__value in _next and return it here
-        raise NotImplementedError()
+        return self.__value
 
 
 class MVGaussianGenerator(VectorGenerator):
