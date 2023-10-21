@@ -73,16 +73,5 @@ def bound_to_360(angle: ScalarOrArray, isDegrees: bool = True) -> ScalarOrArray:
     """
     bound = 360 if isDegrees else (2 * math.pi)
     bound_angle = angle % bound
-    if np.isscalar(bound_angle):
-        if bound_angle < 0:
-            bound_angle += bound
-        elif bound_angle == bound:
-            bound_angle = 0
-    else:
-        for element_angle in bound_angle:
-            if element_angle < 0:
-                element_angle += bound
-            elif element_angle == bound:
-                element_angle = 0
 
     return bound_angle
