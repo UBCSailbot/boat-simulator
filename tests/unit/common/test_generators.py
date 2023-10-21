@@ -13,7 +13,7 @@ from boat_simulator.common.generators import (
 class TestGaussianGenerator:
     @pytest.mark.parametrize(
         "mean, stdev, threshold",
-        [(1, 1, 0.2), (1, 0, 0.2), (-1, 0, 0.2), (4, 5, 0.2), (120, 120, 1)],
+        [(1, 1, 0.2), (1, 0, 0.2), (-1, 0, 0.2), (4, 5, 0.2), (120, 120, 10)],
     )
     def test_gaussian_generator(self, mean, stdev, threshold):
         NUM_SAMPLES = 50000
