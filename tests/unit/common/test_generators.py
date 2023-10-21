@@ -3,11 +3,46 @@
 import numpy as np
 import pytest
 
-from boat_simulator.common.generators import ConstantGenerator, MVGaussianGenerator
+
+from boat_simulator.common.generators import (
+    ConstantGenerator,
+    GaussianGenerator,
+    MVGaussianGenerator,
+)
 
 
 class TestGaussianGenerator:
-    pass
+    @pytest.mark.parametrize(
+        "mean, stdev, threshold",
+        [(1.0, 1.0, 0.2), (10, 0.0, 0.0), (-1.0, 0.0, 0.2), (4.2, 5.1, 0.2), (120.0, 120.0, 10.0)],
+    )
+    def test_gaussian_generator(self, mean: float, stdev: float, threshold):
+        """
+        This test compares the mean and standard deviation computed from an array
+        of generated sequence of scalars originating from the GaussianGenerator to the expected
+
+        Args:
+            mean (float): Describes the mean of the Gaussian distribution used
+            by the GaussianGenerator.
+            stdev (float): Describes the standard deviation of the Gaussian distribution
+            used by the GaussianGenerator.
+            threshold (float): Threshold allowed between expected mean and standard deviation
+            to computed mean and standard deviation.
+        """
+        NUM_SAMPLES = 50000
+
+        samples = np.zeros(NUM_SAMPLES)
+
+        generator = GaussianGenerator(mean=mean, stdev=stdev)
+
+        for i in range(NUM_SAMPLES):
+            samples[i] = generator.next()
+
+        sample_mean = np.mean(samples)
+        sample_std = np.std(samples)
+
+        assert np.allclose(sample_std, stdev, atol=threshold)
+        assert np.allclose(sample_mean, mean, atol=threshold)
 
 
 class TestMVGaussianGenerator:
