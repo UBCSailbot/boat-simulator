@@ -161,7 +161,7 @@ class ConstantGenerator(VectorGenerator):
         self.__constant = constant
 
     def _next(self) -> ScalarOrArray:
-        raise NotImplementedError()
+        return self.__constant
 
     @property
     def constant(self) -> ScalarOrArray:
