@@ -60,39 +60,18 @@ def bound_to_180(angle: ScalarOrArray, isDegrees: bool = True) -> ScalarOrArray:
     return angle - 2 * bound * ((angle + bound) // (2 * bound))
 
 
-def bound_to_360(angle: Scalar, isDegrees: bool = True) -> Scalar:
+def bound_to_360(angle: ScalarOrArray, isDegrees: bool = True) -> ScalarOrArray:
     """Converts an angle to be in the range [0, 360) degrees.
 
     Args:
-        `angle` (Scalar): Angle to be bound.
+        `angle` (ScalarOrArray): Angle to be bound.
         `isDegrees` (bool, optional): True if the input is in degrees, and false for radians.
             Defaults to True.
 
     Returns:
-        Scalar: Bounded angle. Output units matches `isDegrees`.
+        ScalarOrArray: Bounded angle. Output units matches `isDegrees`.
     """
-    raise NotImplementedError()
+    bound = 360 if isDegrees else (2 * math.pi)
+    bound_angle = angle % bound
 
-
-def enu_heading_to_ned_heading(enu_heading: Scalar) -> Scalar:
-    """Converts a heading from ENU to NED.
-
-    Args:
-        `enu_heading` (Scalar): Heading in ENU.
-
-    Returns:
-        Scalar: Heading in NED.
-    """
-    raise NotImplementedError()
-
-
-def ned_heading_to_enu_heading(ned_heading: Scalar) -> Scalar:
-    """Converts a heading from NED to ENU.
-
-    Args:
-        `ned_heading` (Scalar): Heading in NED.
-
-    Returns:
-        Scalar: Heading in ENU.
-    """
-    raise NotImplementedError()
+    return bound_angle
