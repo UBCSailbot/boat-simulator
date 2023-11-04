@@ -45,7 +45,7 @@ class Sensor(ABC):
                 Available labels: {self.datalines.keys()}"""
             )
         else:
-            return self.datalines[label].data
+            return self.datalines[label].read()
 
 
 class WindSensor(Sensor):
