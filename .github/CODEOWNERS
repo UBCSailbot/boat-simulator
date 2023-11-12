@@ -5,4 +5,8 @@
 # the repo. Unless a later match takes precedence,
 # these owners will be requested for
 # review when someone opens a pull request.
-* @ubcsailbotsoftware @DFriend01
+* @DFriend01
+
+# Additionally make ubcsailbotsoftware a code owner for
+# tests.yml so it can auto-approve dependabot PRs
+/.github/workflows/tests.yml @ubcsailbotsoftware @DFriend01
