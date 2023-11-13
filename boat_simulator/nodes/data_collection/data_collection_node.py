@@ -46,6 +46,7 @@ class DataCollectionNode(Node):
         self.__init_msg_types_dict()
         self.__init_subscriptions()
         self.__init_timer_callbacks()
+        self.__init_shutdown_callbacks()
         self.get_logger().debug("Node initialization complete. Starting execution...")
 
     def __declare_ros_parameters(self):
@@ -141,6 +142,9 @@ class DataCollectionNode(Node):
         # specify timer period when known
         self.create_timer(timer_period_sec="", callback=self.__write_to_json)
 
+    def __init_shutdown_callbacks(self):
+        self.context.on_shutdown(self.__shutdown_callback)
+
     # SUBSCRIPTION CALLBACKS
     def __general_sub_callback(self, msg: Type, topic_name: str):
         if self.__use_bag:
@@ -157,10 +161,21 @@ class DataCollectionNode(Node):
         # write to json for all the other ones will never get written
         if all(self.__data_to_write.values()):  # all values are not None
             self.__data_to_write["time"] = self.get_clock().now().nanoseconds
-            self.__json_counter.write(",\n")  # don't print comma for last
+            self.__json_counter.write(",\n")
             item_to_write = {self.__json_counter: self.__data_to_write}
             json.dump(item_to_write, self.__json_file, indent=4)
             self.__json_counter += 1
+
+    # SHUTDOWN CALLBACKS
+    def __shutdown_callback(self):
+        """Shutdown callback to close bag and json."""
+        self.get_logger().debug("Shutting down the node...")
+        if self.__use_bag:
+            self.__writer.close()
+        if self.__use_json:
+            self.__json_file.write("\n]")  # Close the JSON array
+            self.__json_file.close()
+        self.get_logger().debug("Node shutdown complete.")
 
     # Use closures: https://www.geeksforgeeks.org/python-closures/
     # and higher order functions: https://geeksforgeeks.org/higher-order-functions-in-python/
