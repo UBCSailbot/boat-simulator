@@ -18,7 +18,7 @@ jobs:
   test-definitions:
     # sailbot_workspace: use locally-defined file
     # other repositories: set to UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@<release>
-    uses: UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@v1.4.8
+    uses: UBCSailbot/sailbot_workspace/.github/workflows/test_definitions.yml@v1.5.1
     # see https://github.com/UBCSailbot/sailbot_workspace/blob/main/.github/workflows/test_definitions.yml
     # for documentation on the inputs and secrets below
     with:
