@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 """The ROS node for data collection."""
-
 import inspect
 import json
 import sys
@@ -38,7 +37,7 @@ def is_collection_enabled():
 
 class DataCollectionNode(Node):
     def __init__(self):
-        super.__init__("data_collection_node")
+        super().__init__(node_name="data_collection_node")
         self.get_logger().debug("Initializing node...")
         self.__declare_ros_parameters()
         self.__init_config_attributes()
@@ -61,6 +60,7 @@ class DataCollectionNode(Node):
                 ("topics", rclpy.Parameter.Type.STRING_ARRAY),
                 ("bag", rclpy.Parameter.Type.BOOL),
                 ("json", rclpy.Parameter.Type.BOOL),
+                ("write_period_sec", rclpy.Parameter.Type.DOUBLE),
             ],
         ),
         all_parameters = self._parameters
@@ -76,6 +76,9 @@ class DataCollectionNode(Node):
         )
         self.__use_bag = self.get_parameter("bag").get_parameter_value().bool_value
         self.__use_json = self.get_parameter("json").get_parameter_value().bool_value
+        self.__json_write_period = (
+            self.get_parameter("write_period_sec").get_parameter_value().double_value
+        )
 
     def __init_storage_files(self):
         if self.__use_bag:
@@ -113,6 +116,8 @@ class DataCollectionNode(Node):
                 qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             )
 
+        self.__record_topics_sub = []
+
         # assuming topics are specified as ['topic_name', 'topic_type']
         for i in range(1, len(self.__record_topics), 2):
             topic_name = self.__record_topics[i - 1]
@@ -140,7 +145,7 @@ class DataCollectionNode(Node):
         self.get_logger().debug("Initializing timer callbacks...")
 
         # specify timer period when known
-        self.create_timer(timer_period_sec="", callback=self.__write_to_json)
+        self.create_timer(timer_period_sec=self.__json_write_period, callback=self.__write_to_json)
 
     def __init_shutdown_callbacks(self):
         self.context.on_shutdown(self.__shutdown_callback)
@@ -177,8 +182,6 @@ class DataCollectionNode(Node):
             self.__json_file.close()
         self.get_logger().debug("Node shutdown complete.")
 
-    # Use closures: https://www.geeksforgeeks.org/python-closures/
-    # and higher order functions: https://geeksforgeeks.org/higher-order-functions-in-python/
-    # Print warning maybe for nodes that haven't published in a while?
-    # alternative to checking if node specified in globals.yaml is actually launched
-    # Look at the rclpy.Context class for on_shutdown function. Define a shutdown callback
+
+if __name__ == "__main__":
+    main()
