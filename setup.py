@@ -28,6 +28,8 @@ setup(
             + "boat_simulator.nodes.physics_engine.physics_engine_node:main",
             "low_level_control_node = "
             + "boat_simulator.nodes.low_level_control.low_level_control_node:main",
+            "data_collection_node = "
+            + "boat_simulator.nodes.data_collection.data_collection_node:main",
         ],
     },
 )
