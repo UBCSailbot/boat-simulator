@@ -1,78 +1,121 @@
-from boat_simulator.common.dataline import Dataline
-from boat_simulator.common.generators import MVGaussianGenerator, GaussianGenerator
-from abc import ABC
-import numpy as np
+from dataclasses import dataclass
+from boat_simulator.common.types import ScalarOrArray, Scalar
+from numpy.typing import NDArray
+from boat_simulator.common.generators import (
+    MVGaussianGenerator,
+    ConstantGenerator,
+    GaussianGenerator,
+)
 
 
-class Sensor(ABC):
-    # in_data should be a dictionary of values mapping labels to values
-    def __init__(self, in_data) -> None:
-        super().__init__()
-        self.__in_data = in_data
-        self.__out_data = in_data
-        self.__datalines = {}
-
-    @property
-    def in_data(self):
-        return self.__in_data
-
-    @property
-    def out_data(self):
-        return self.__out_data
-
-    @property
-    def datalines(self):
-        return self.__datalines
-
-    @datalines.setter
-    def datalines(self, new_datalines):
-        self.__datalines = new_datalines
-
-    def update(self, new_data):
-        for label, data in new_data.items():
-            if label in self.datalines.keys():
-                self.datalines[label].update(data)
+@dataclass
+class Sensor:
+    def update(self, **kwargs):
+        for attr_name, attr_val in kwargs.items():
+            if attr_name in self.__annotations__:
+                setattr(self, attr_name, attr_val)
             else:
                 raise ValueError(
-                    f"""Sensor Dataline with label {label} does not exist and cannot be
-                    updated. Available labels: {self.datalines.keys()}"""
+                    f"""{attr_name} not a property in {self.__class__.__name__}
+                    expected {self.__annotations__}"""
                 )
 
-    def read(self, label):
-        if label not in self.datalines.keys():
-            raise ValueError(
-                f"""Sensor Dataline with {label} does not exist and cannot be read.
-                Available labels: {self.datalines.keys()}"""
-            )
-        else:
-            return self.datalines[label].read()
+    def read(self, key):
+        if key in self.__annotations__:
+            return getattr(self, key)
 
 
+@dataclass
 class WindSensor(Sensor):
-    def __init__(self, in_data) -> None:
-        super().__init__(in_data)
-        # might need to pull parameters from ROS for what type of noise generator...
-        self.datalines = {
-            "wind": Dataline(
-                data=in_data["wind"],
-                noise_generator=MVGaussianGenerator(mean=[1, 1], cov=np.ones((2, 2))),
-            )
-        }
+    wind: ScalarOrArray
+    wind_noisemaker: MVGaussianGenerator | ConstantGenerator | None
+
+    @property
+    def wind(self) -> ScalarOrArray:
+        return self._wind + self._wind_noisemaker.next() if self.wind_noisemaker else self._wind
+
+    @property
+    def wind_noisemaker(self) -> MVGaussianGenerator | ConstantGenerator | None:
+        return self._wind_noisemaker
+
+    @wind.setter
+    def wind(self, wind: ScalarOrArray):
+        self._wind = wind
+        print(f"Set wind to {wind}")
+
+    @wind_noisemaker.setter
+    def wind_noisemaker(self, noisemaker: MVGaussianGenerator | ConstantGenerator | None):
+        self._wind_noisemaker = noisemaker
+        print(f"Set noisemaker to {noisemaker}")
 
 
+@dataclass
 class GPS(Sensor):
-    def __init__(self, in_data) -> None:
-        super().__init__(in_data)
-        self.datalines = {
-            "latlon": Dataline(
-                data=in_data["latlon"],
-                noise_generator=MVGaussianGenerator(mean=[1, 1], cov=np.ones((2, 2))),
-            ),
-            "speed": Dataline(
-                data=in_data["speed"], noise_generator=GaussianGenerator(mean=1, stdev=1)
-            ),
-            "heading": Dataline(
-                data=in_data["heading"],
-                noise_generator=GaussianGenerator(mean=[1, 1], cov=np.ones((2, 2))),
-            ),
-        }
+    lat_lon: NDArray
+    speed: Scalar
+    heading: Scalar
+
+    lat_lon_noisemaker: GaussianGenerator | ConstantGenerator | None
+    speed_noisemaker: GaussianGenerator | ConstantGenerator | None
+    heading_noisemaker: GaussianGenerator | ConstantGenerator | None
+
+    @property
+    def lat_lon(self) -> NDArray:
+        return (
+            self._lat_lon + self._lat_lon_noisemaker.next()
+            if self._lat_lon_noisemaker
+            else self._lat_lon
+        )
+
+    @lat_lon.setter
+    def lat_lon(self, lat_lon: NDArray):
+        self._lat_lon = lat_lon
+        print(f"Set lat_lon to {lat_lon}")
+
+    @property
+    def speed(self) -> Scalar:
+        return (
+            self._speed + self._speed_noisemaker.next() if self._speed_noisemaker else self._speed
+        )
+
+    @speed.setter
+    def speed(self, speed: Scalar):
+        self._speed = speed
+        print(f"Set speed to {speed}")
+
+    @property
+    def heading(self) -> Scalar:
+        return (
+            self._heading + self._heading_noisemaker.next()
+            if self._heading_noisemaker
+            else self._heading
+        )
+
+    @heading.setter
+    def heading(self, heading: NDArray):
+        self._heading = heading
+        print(f"Set heading to {heading}")
+
+    @property
+    def lat_lon_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+        return self._lat_lon_noisemaker
+
+    @lat_lon_noisemaker.setter
+    def lat_lon_noisemaker(self, noisemaker):
+        self._lat_lon_noisemaker = noisemaker
+
+    @property
+    def speed_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+        return self._speed_noisemaker
+
+    @speed_noisemaker.setter
+    def speed_noisemaker(self, noisemaker):
+        self._speed_noisemaker = noisemaker
+
+    @property
+    def heading_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+        return self._heading_noisemaker
+
+    @heading_noisemaker.setter
+    def heading_noisemaker(self, noisemaker):
+        self._heading_noisemaker = noisemaker
