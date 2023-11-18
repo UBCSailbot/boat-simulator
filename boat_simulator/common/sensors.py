@@ -34,19 +34,17 @@ class WindSensor(Sensor):
     def wind(self) -> ScalarOrArray:
         return self._wind + self._wind_noisemaker.next() if self.wind_noisemaker else self._wind
 
+    @wind.setter
+    def wind(self, wind: ScalarOrArray):
+        self._wind = wind
+
     @property
     def wind_noisemaker(self) -> MVGaussianGenerator | ConstantGenerator | None:
         return self._wind_noisemaker
 
-    @wind.setter
-    def wind(self, wind: ScalarOrArray):
-        self._wind = wind
-        print(f"Set wind to {wind}")
-
     @wind_noisemaker.setter
     def wind_noisemaker(self, noisemaker: MVGaussianGenerator | ConstantGenerator | None):
         self._wind_noisemaker = noisemaker
-        print(f"Set noisemaker to {noisemaker}")
 
 
 @dataclass
@@ -70,7 +68,6 @@ class GPS(Sensor):
     @lat_lon.setter
     def lat_lon(self, lat_lon: NDArray):
         self._lat_lon = lat_lon
-        print(f"Set lat_lon to {lat_lon}")
 
     @property
     def speed(self) -> Scalar:
@@ -81,7 +78,6 @@ class GPS(Sensor):
     @speed.setter
     def speed(self, speed: Scalar):
         self._speed = speed
-        print(f"Set speed to {speed}")
 
     @property
     def heading(self) -> Scalar:
@@ -94,7 +90,6 @@ class GPS(Sensor):
     @heading.setter
     def heading(self, heading: NDArray):
         self._heading = heading
-        print(f"Set heading to {heading}")
 
     @property
     def lat_lon_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
