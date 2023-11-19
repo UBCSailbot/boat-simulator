@@ -6,7 +6,11 @@ from typing import TypeVar, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from boat_simulator.common.generators import ConstantGenerator, MVGaussianGenerator
+from boat_simulator.common.generators import (
+    ConstantGenerator,
+    MVGaussianGenerator,
+    GaussianGenerator,
+)
 
 # Any attribute of a class that extends Enum
 EnumAttr = TypeVar("EnumAttr", bound=Enum)
@@ -17,3 +21,5 @@ Scalar = Union[int, float]
 # Used in cases where support for scalars or arrays of scalars are needed.
 ScalarOrArray = Union[Scalar, NDArray[Union[np.int32, np.float32]]]
 
+WindSensorGenerators = MVGaussianGenerator | ConstantGenerator | None
+GPSGenerators = GaussianGenerator | ConstantGenerator | None

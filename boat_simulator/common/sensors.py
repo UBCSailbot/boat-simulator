@@ -2,12 +2,13 @@ from dataclasses import dataclass
 
 from numpy.typing import NDArray
 
-from boat_simulator.common.generators import (
-    ConstantGenerator,
-    GaussianGenerator,
-    MVGaussianGenerator,
+
+from boat_simulator.common.types import (
+    Scalar,
+    ScalarOrArray,
+    WindSensorGenerators,
+    GPSGenerators,
 )
-from boat_simulator.common.types import Scalar, ScalarOrArray, WindNoiseGenerators
 
 
 @dataclass
@@ -30,22 +31,26 @@ class Sensor:
 @dataclass
 class WindSensor(Sensor):
     wind: ScalarOrArray
-    wind_noisemaker: MVGaussianGenerator | ConstantGenerator | None
+    wind_noisemaker: WindSensorGenerators
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
-        return self._wind + self._wind_noisemaker.next() if self.wind_noisemaker else self._wind
+        return (
+            self._wind + self._wind_noisemaker.next()
+            if self.wind_noisemaker
+            else self._wind
+        )
 
     @wind.setter
     def wind(self, wind: ScalarOrArray):
         self._wind = wind
 
     @property  # type: ignore
-    def wind_noisemaker(self) -> MVGaussianGenerator | ConstantGenerator | None:
+    def wind_noisemaker(self) -> WindSensorGenerators:
         return self._wind_noisemaker
 
     @wind_noisemaker.setter
-    def wind_noisemaker(self, noisemaker: MVGaussianGenerator | ConstantGenerator | None):
+    def wind_noisemaker(self, noisemaker: WindSensorGenerators):
         self._wind_noisemaker = noisemaker
 
 
@@ -55,15 +60,15 @@ class GPS(Sensor):
     speed: Scalar
     heading: Scalar
 
-    lat_lon_noisemaker: GaussianGenerator | ConstantGenerator | None
-    speed_noisemaker: GaussianGenerator | ConstantGenerator | None
-    heading_noisemaker: GaussianGenerator | ConstantGenerator | None
+    lat_lon_noisemaker: GPSGenerators
+    speed_noisemaker: GPSGenerators
+    heading_noisemaker: GPSGenerators
 
     @property  # type: ignore
     def lat_lon(self) -> NDArray:
         return (
             self._lat_lon + self._lat_lon_noisemaker.next()
-            if self._lat_lon_noisemaker
+            if not isinstance(self._lat_lon_noisemaker, GPSGenerators)
             else self._lat_lon
         )
 
@@ -74,7 +79,9 @@ class GPS(Sensor):
     @property  # type: ignore
     def speed(self) -> Scalar:
         return (
-            self._speed + self._speed_noisemaker.next() if self._speed_noisemaker else self._speed
+            self._speed + self._speed_noisemaker.next()
+            if not isinstance(self._speed_noisemaker, GPSGenerators)
+            else self._speed
         )
 
     @speed.setter
@@ -85,7 +92,7 @@ class GPS(Sensor):
     def heading(self) -> Scalar:
         return (
             self._heading + self._heading_noisemaker.next()
-            if self._heading_noisemaker
+            if not isinstance(self._heading_noisemaker, GPSGenerators)
             else self._heading
         )
 
@@ -94,25 +101,25 @@ class GPS(Sensor):
         self._heading = heading
 
     @property  # type: ignore
-    def lat_lon_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+    def lat_lon_noisemaker(self) -> GPSGenerators:
         return self._lat_lon_noisemaker
 
     @lat_lon_noisemaker.setter
-    def lat_lon_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
+    def lat_lon_noisemaker(self, noisemaker: GPSGenerators):
         self._lat_lon_noisemaker = noisemaker
 
     @property  # type: ignore
-    def speed_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+    def speed_noisemaker(self) -> GPSGenerators:
         return self._speed_noisemaker
 
     @speed_noisemaker.setter
-    def speed_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
+    def speed_noisemaker(self, noisemaker: GPSGenerators):
         self._speed_noisemaker = noisemaker
 
     @property  # type: ignore
-    def heading_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
+    def heading_noisemaker(self) -> GPSGenerators:
         return self._heading_noisemaker
 
     @heading_noisemaker.setter
-    def heading_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
+    def heading_noisemaker(self, noisemaker: GPSGenerators):
         self._heading_noisemaker = noisemaker
