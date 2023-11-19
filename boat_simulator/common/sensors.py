@@ -1,11 +1,13 @@
 from dataclasses import dataclass
-from boat_simulator.common.types import ScalarOrArray, Scalar
+
 from numpy.typing import NDArray
+
 from boat_simulator.common.generators import (
-    MVGaussianGenerator,
     ConstantGenerator,
     GaussianGenerator,
+    MVGaussianGenerator,
 )
+from boat_simulator.common.types import Scalar, ScalarOrArray, WindNoiseGenerators
 
 
 @dataclass
@@ -30,7 +32,7 @@ class WindSensor(Sensor):
     wind: ScalarOrArray
     wind_noisemaker: MVGaussianGenerator | ConstantGenerator | None
 
-    @property
+    @property  # type: ignore
     def wind(self) -> ScalarOrArray:
         return self._wind + self._wind_noisemaker.next() if self.wind_noisemaker else self._wind
 
@@ -38,7 +40,7 @@ class WindSensor(Sensor):
     def wind(self, wind: ScalarOrArray):
         self._wind = wind
 
-    @property
+    @property  # type: ignore
     def wind_noisemaker(self) -> MVGaussianGenerator | ConstantGenerator | None:
         return self._wind_noisemaker
 
@@ -57,7 +59,7 @@ class GPS(Sensor):
     speed_noisemaker: GaussianGenerator | ConstantGenerator | None
     heading_noisemaker: GaussianGenerator | ConstantGenerator | None
 
-    @property
+    @property  # type: ignore
     def lat_lon(self) -> NDArray:
         return (
             self._lat_lon + self._lat_lon_noisemaker.next()
@@ -69,7 +71,7 @@ class GPS(Sensor):
     def lat_lon(self, lat_lon: NDArray):
         self._lat_lon = lat_lon
 
-    @property
+    @property  # type: ignore
     def speed(self) -> Scalar:
         return (
             self._speed + self._speed_noisemaker.next() if self._speed_noisemaker else self._speed
@@ -79,7 +81,7 @@ class GPS(Sensor):
     def speed(self, speed: Scalar):
         self._speed = speed
 
-    @property
+    @property  # type: ignore
     def heading(self) -> Scalar:
         return (
             self._heading + self._heading_noisemaker.next()
@@ -88,29 +90,29 @@ class GPS(Sensor):
         )
 
     @heading.setter
-    def heading(self, heading: NDArray):
+    def heading(self, heading: Scalar):
         self._heading = heading
 
-    @property
+    @property  # type: ignore
     def lat_lon_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
         return self._lat_lon_noisemaker
 
     @lat_lon_noisemaker.setter
-    def lat_lon_noisemaker(self, noisemaker):
+    def lat_lon_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
         self._lat_lon_noisemaker = noisemaker
 
-    @property
+    @property  # type: ignore
     def speed_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
         return self._speed_noisemaker
 
     @speed_noisemaker.setter
-    def speed_noisemaker(self, noisemaker):
+    def speed_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
         self._speed_noisemaker = noisemaker
 
-    @property
+    @property  # type: ignore
     def heading_noisemaker(self) -> GaussianGenerator | ConstantGenerator | None:
         return self._heading_noisemaker
 
     @heading_noisemaker.setter
-    def heading_noisemaker(self, noisemaker):
+    def heading_noisemaker(self, noisemaker: GaussianGenerator | ConstantGenerator | None):
         self._heading_noisemaker = noisemaker
