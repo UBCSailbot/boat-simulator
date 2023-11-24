@@ -92,6 +92,7 @@ class DataCollectionNode(Node):
         if self.use_json:
             self.__data_to_write = {}
             self.__json_counter = 0
+            self.__start_time = self.get_clock().now().nanoseconds
             json_file_path = "./" + self.file_name + ".json"
             if os.path.exists(json_file_path):
                 self.get_logger().warn(
@@ -162,15 +163,15 @@ class DataCollectionNode(Node):
                 topic_name, serialize_message(msg), self.get_clock().now().nanoseconds
             )
         if self.use_json:
-            msg_as_json = json.dumps(rosidl_runtime_py.message_to_ordereddict(msg), indent=4)
-            self.__data_to_write[topic_name] = msg_as_json
+            msg_as_ord_dict = rosidl_runtime_py.message_to_ordereddict(msg)
+            self.__data_to_write[topic_name] = msg_as_ord_dict
 
     # TIMER CALLBACKS
     def __write_to_json(self):
         # Only concern with this is if topic subscribed to is not launched, then we will never
         # write to json for all the other ones will never get written
         if all(self.__data_to_write.values()):  # all values are not None
-            self.__data_to_write["time"] = self.get_clock().now().nanoseconds
+            self.__data_to_write["time"] = self.get_clock().now().nanoseconds - self.__start_time
             if self.__json_counter > 0:
                 self.__json_file.write(",\n")
             item_to_write = {self.__json_counter: self.__data_to_write}
