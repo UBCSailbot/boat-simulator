@@ -5,11 +5,16 @@ from boat_simulator.common.generators import (
     ConstantGenerator,
     GaussianGenerator,
 )
+import pytest
+
+
+@pytest.fixture
+def init_data():
+    return np.array([1, 0])
 
 
 class TestWindSensor:
-    def test_windsensor_init(self):
-        init_data = np.array([1, 0])
+    def test_wind_sensor_init(self, init_data):
         error_fn = None
         ws = WindSensor(
             wind=init_data,
@@ -19,9 +24,7 @@ class TestWindSensor:
         assert ws.wind_noisemaker == error_fn
         assert np.all(ws.wind == init_data)
 
-    def test_windsensor_read_no_error(self):
-        #  MVGaussianGenerator(mean=np.array([1, 1]), cov=np.eye(2))
-        init_data = np.array([1, 0])
+    def test_wind_sensor_read_no_error(self, init_data):
         error_fn = None
         ws = WindSensor(
             wind=init_data,
@@ -30,8 +33,7 @@ class TestWindSensor:
         read_data = ws.read("wind")
         assert (init_data == read_data).all()
 
-    def test_windsensor_read_constant_error(self):
-        init_data = np.array([1, 0])
+    def test_wind_sensor_read_constant_error(self, init_data):
         const_err = 0.1
         error_fn = ConstantGenerator(constant=0.1)
         ws = WindSensor(
@@ -42,8 +44,7 @@ class TestWindSensor:
         read_data = ws.read("wind")
         assert ((init_data + const_err) == read_data).all()
 
-    def test_windsensor_read_mv_gaussian_error(self):
-        init_data = np.array([1, 0])
+    def test_wind_sensor_read_mv_gaussian_error(self, init_data):
         mean = np.array([1, 1])
         cov = np.eye(2)
         error_fn = MVGaussianGenerator(mean=mean, cov=cov)
@@ -63,8 +64,8 @@ class TestWindSensor:
         assert np.allclose(sample_cov, cov, atol=0.2)
         assert np.isclose(sample_mean, mean + init_data, 0.1).all()
 
-    def test_windsensor_update(self):
-        init_data = np.array([0, 0])
+    def test_wind_sensor_update(self):
+        init_data = np.zeros(2)
         error_fn = None
         ws = WindSensor(wind=init_data, wind_noisemaker=error_fn)
 
@@ -165,12 +166,13 @@ class TestGPS:
             lat_lon_readings[i, :] = gps.read("lat_lon")
 
         for reading, init_data in zip(
-            [speed_readings, heading_readings, lat_lon_readings], [speed, heading, lat_lon]
+            [speed_readings, heading_readings, lat_lon_readings],
+            [speed, heading, lat_lon],
         ):
             sample_mean = np.mean(reading, axis=0)
             assert np.isclose(sample_mean, mean + init_data, atol=0.1).all()
 
-    def test_windsensor_update(self):
+    def test_wind_sensor_update(self):
         lat_lon = np.array([0, 0])
         speed = 0
         heading = 0

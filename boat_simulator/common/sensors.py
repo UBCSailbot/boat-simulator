@@ -35,11 +35,11 @@ class WindSensor(Sensor):
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
-        return (
-            self._wind + self._wind_noisemaker.next()
-            if self.wind_noisemaker
-            else self._wind
-        )
+        noisemaker = self.wind_noisemaker
+        if noisemaker is not None:
+            return self._wind + noisemaker.next()
+        else:
+            return self._wind
 
     @wind.setter
     def wind(self, wind: ScalarOrArray):
@@ -68,7 +68,7 @@ class GPS(Sensor):
     def lat_lon(self) -> NDArray:
         return (
             self._lat_lon + self._lat_lon_noisemaker.next()
-            if not isinstance(self._lat_lon_noisemaker, GPSGenerators)
+            if self._lat_lon_noisemaker is not None
             else self._lat_lon
         )
 
@@ -79,8 +79,8 @@ class GPS(Sensor):
     @property  # type: ignore
     def speed(self) -> Scalar:
         return (
-            self._speed + self._speed_noisemaker.next()
-            if not isinstance(self._speed_noisemaker, GPSGenerators)
+            self._speed + self._speed_noisemaker.next()  # type: ignore
+            if self._speed_noisemaker is not None
             else self._speed
         )
 
@@ -91,9 +91,9 @@ class GPS(Sensor):
     @property  # type: ignore
     def heading(self) -> Scalar:
         return (
-            self._heading + self._heading_noisemaker.next()
-            if not isinstance(self._heading_noisemaker, GPSGenerators)
-            else self._heading
+            self._heading + self._heading_noisemaker.next()  # type: ignore
+            if self._heading_noisemaker is not None
+            else self._speed
         )
 
     @heading.setter
