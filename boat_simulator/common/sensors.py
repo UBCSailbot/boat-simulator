@@ -1,14 +1,19 @@
 from dataclasses import dataclass
 
+from typing import Optional
 from numpy.typing import NDArray
 
 
-from boat_simulator.common.types import (
-    Scalar,
-    ScalarOrArray,
-    WindSensorGenerators,
-    GPSGenerators,
+from boat_simulator.common.types import Scalar, ScalarOrArray
+
+from boat_simulator.common.generators import (
+    ConstantGenerator,
+    MVGaussianGenerator,
+    GaussianGenerator,
 )
+
+WindSensorGenerators = Optional[MVGaussianGenerator | ConstantGenerator]
+GPSGenerators = Optional[GaussianGenerator | ConstantGenerator]
 
 
 @dataclass
