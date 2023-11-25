@@ -176,8 +176,9 @@ class DataCollectionNode(Node):
     def __write_to_json(self):
         # Only concern with this is if topic subscribed to is not launched, then we will never
         # write to json for all the other ones will never get written
-        if all(self.__data_to_write.values()):  # all values are not None
-            self.__data_to_write["time"] = self.get_clock().now().nanoseconds - self.__start_time
+        if all(self.__data_to_write.values()):
+            time_in_seconds = (self.get_clock().now().nanoseconds - self.__start_time) / 1e9
+            self.__data_to_write["time"] = time_in_seconds
             if self.__json_index_counter > 0:
                 self.__json_file.write(",\n")
             item_to_write = {self.__json_index_counter: self.__data_to_write}
