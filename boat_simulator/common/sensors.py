@@ -98,7 +98,7 @@ class GPS(Sensor):
         return (
             self._heading + self._heading_noisemaker.next()  # type: ignore
             if self._heading_noisemaker is not None
-            else self._speed
+            else self._heading
         )
 
     @heading.setter
