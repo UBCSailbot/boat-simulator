@@ -40,11 +40,11 @@ class WindSensor(Sensor):
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
-        noisemaker = self.wind_noisemaker
-        if noisemaker is not None:
-            return self._wind + noisemaker.next()
-        else:
-            return self._wind
+        return (
+            self._wind + self._wind_noisemaker.next()  # type: ignore
+            if self._wind_noisemaker is not None
+            else self._wind_noisemaker
+        )
 
     @wind.setter
     def wind(self, wind: ScalarOrArray):
