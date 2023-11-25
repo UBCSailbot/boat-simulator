@@ -20,6 +20,7 @@ import boat_simulator.common.constants as Constants
 
 
 def shutdown_handler(signum, frame):
+    """Necessary for ros shutdown callback to be properly called."""
     sys.exit(0)
 
 
@@ -62,6 +63,7 @@ class DataCollectionNode(Node):
         node.
         """
         self.get_logger().debug("Declaring ROS parameters...")
+
         self.declare_parameters(
             namespace="",
             parameters=[
@@ -81,17 +83,10 @@ class DataCollectionNode(Node):
     def __init_storage_files(self):
         """Initializes storage files for data logging."""
         self.get_logger().debug("Initializing storrage files...")
-        if self.use_bag:
-            self.__writer = rosbag2_py.SequentialWriter()
-            storage_options = rosbag2_py._storage.StorageOptions(
-                uri=self.file_name, storage_id="sqlite3"
-            )
-            converter_options = rosbag2_py._storage.ConverterOptions("", "")
-            self.__writer.open(storage_options, converter_options)
 
         if self.use_json:
             self.__data_to_write = {}
-            self.__json_counter = 0
+            self.__json_index_counter = 0
             self.__start_time = self.get_clock().now().nanoseconds
             json_file_path = "./" + self.file_name + ".json"
             if os.path.exists(json_file_path):
@@ -101,6 +96,14 @@ class DataCollectionNode(Node):
                 os.remove(json_file_path)
             self.__json_file = open(json_file_path, "a")
             self.__json_file.write("[\n")  # Open JSON array
+
+        if self.use_bag:
+            self.__writer = rosbag2_py.SequentialWriter()
+            storage_options = rosbag2_py._storage.StorageOptions(
+                uri=self.file_name, storage_id="sqlite3"
+            )
+            converter_options = rosbag2_py._storage.ConverterOptions("", "")
+            self.__writer.open(storage_options, converter_options)
 
     def __init_msg_types_dict(self):
         """Prepare dictionary of all msg types with key name and value class"""
@@ -124,27 +127,29 @@ class DataCollectionNode(Node):
 
         self.__record_topics_sub = []
 
-        # assuming topics are specified as ['topic_name', 'topic_type']
+        # Assuming topics are specified as ['topic_name', 'topic_type']
         for i in range(1, len(self.topics_to_record), 2):
             topic_name = self.topics_to_record[i - 1]
             msg_type_name = self.topics_to_record[i]
 
             if msg_type_name not in self.__msg_types_dict:
-                # Display Error
-                continue
+                self.get_logger().error(
+                    f"msg type {msg_type_name} does not exist. Please adjust the topics array in \
+                        globals.yaml"
+                )
 
             self.__record_topics_sub.append(
                 create_subscription_with_callback(topic_name, self.__msg_types_dict[msg_type_name])
             )
+
+            if self.use_json:
+                self.__data_to_write[topic_name] = None
 
             if self.use_bag:
                 topic_info = rosbag2_py._storage.TopicMetadata(
                     name=topic_name, type=msg_type_name, serialization_format="cdr"
                 )
                 self.__writer.create_topic(topic_info)
-
-            if self.use_json:
-                self.__data_to_write[topic_name] = None
 
     def __init_timer_callbacks(self):
         """Initializes timer callbacks of this node that are executed periodically."""
@@ -158,13 +163,14 @@ class DataCollectionNode(Node):
 
     # SUBSCRIPTION CALLBACKS
     def __general_sub_callback(self, msg: Type, topic_name: str):
+        if self.use_json:
+            msg_as_ord_dict = rosidl_runtime_py.message_to_ordereddict(msg)
+            self.__data_to_write[topic_name] = msg_as_ord_dict
+
         if self.use_bag:
             self.__writer.write(
                 topic_name, serialize_message(msg), self.get_clock().now().nanoseconds
             )
-        if self.use_json:
-            msg_as_ord_dict = rosidl_runtime_py.message_to_ordereddict(msg)
-            self.__data_to_write[topic_name] = msg_as_ord_dict
 
     # TIMER CALLBACKS
     def __write_to_json(self):
@@ -172,21 +178,23 @@ class DataCollectionNode(Node):
         # write to json for all the other ones will never get written
         if all(self.__data_to_write.values()):  # all values are not None
             self.__data_to_write["time"] = self.get_clock().now().nanoseconds - self.__start_time
-            if self.__json_counter > 0:
+            if self.__json_index_counter > 0:
                 self.__json_file.write(",\n")
-            item_to_write = {self.__json_counter: self.__data_to_write}
+            item_to_write = {self.__json_index_counter: self.__data_to_write}
             json.dump(item_to_write, self.__json_file, indent=4)
-            self.__json_counter += 1
+            self.__json_index_counter += 1
 
     # SHUTDOWN CALLBACKS
     def __shutdown_callback(self):
         """Shutdown callback to close bag and json."""
         self.get_logger().debug("Closing the storage files...")
-        if self.use_bag:
-            self.__writer.close()
+
         if self.use_json:
             self.__json_file.write("\n]")  # Close the JSON array
             self.__json_file.close()
+
+        if self.use_bag:
+            self.__writer.close()  # Needs to be called after json close to prevent early exit
 
     @property
     def file_name(self):
