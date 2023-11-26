@@ -43,7 +43,7 @@ class WindSensor(Sensor):
         return (
             self._wind + self._wind_noisemaker.next()  # type: ignore
             if self._wind_noisemaker is not None
-            else self._wind_noisemaker
+            else self._wind
         )
 
     @wind.setter
