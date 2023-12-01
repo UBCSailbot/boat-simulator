@@ -221,12 +221,12 @@ class TestRudderPID:
     @pytest.mark.parametrize(
         "kp,ki,kd,time_period,buf_size,error_timeseries,integral_sum,last_error,current,target",
         [
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, 5, 0),
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, 190, 220),
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, -62.4, 120),
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, 180, -180),
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, -360, 360),
-            (50.22, 9.678, 0.6658, 1, 50, [], 0, 0, -157.45, -158.67),
+            (50.22, 9.678, 0.6658, 1, 50, [], 8, 2, 5, 0),
+            (50.22, 9.678, 0.6658, 1, 50, [], 16, 5, 190, 220),
+            (50.22, 9.678, 0.6658, 1, 50, [], 25.2, 6, -62.4, 120),
+            (50.22, 9.678, 0.6658, 1, 50, [], 19, 9.3, 180, -180),
+            (50.22, 9.678, 0.6658, 1, 50, [], 278, -8.9, -360, 360),
+            (50.22, 9.678, 0.6658, 1, 50, [], -2, 0, -157.45, -158.67),
         ],
     )
     def test_step(
@@ -242,11 +242,19 @@ class TestRudderPID:
         current: Scalar,
         target: Scalar,
     ):
-        """This test compares if the generated vector is exactly
-        the same as the initial vector
+        """This test compares the computed error to the expected
+        error in radians, difference bounded between -pi and pi
 
         Args:
-            constant (array): The constant array to return upon array generation.
+            ckp (Scalar): The proportional component tuning constant.
+            ki (Scalar): The integral component tuning constant.
+            kd (Scalar): The derivative component tuning constant.
+            time_period (Scalar): Time period between error samples.
+            buf_size (int): The max number of error samples to store for integral component.
+            last_error (float): The error calculated in the previous iteration
+            integral_sum (int): The running total of integral sum from integral response
+            current (Scalar): The current heading given in degrees
+            target (Scalar): The target heading given in degrees
         """
         pid = RudderPID(
             kp=kp,
@@ -259,4 +267,22 @@ class TestRudderPID:
             last_error=last_error,
         )
 
-        pid._compute_error(current, target)
+        error = pid._compute_error(current, target)
+        timeseries = [error]
+        feedback = (
+            pid._compute_derivative_response(error, pid.last_error)
+            + pid._compute_integral_response(error, pid.integral_sum)
+            + pid._compute_proportional_response(error)
+        )
+        np.equal(feedback, pid.step(current, target))
+        np.equal(timeseries, pid.error_timeseries)
+
+        error = pid._compute_error(current - 1, target - 1)
+        timeseries.append(error)
+        feedback = (
+            pid._compute_derivative_response(error, pid.last_error)
+            + pid._compute_integral_response(error, pid.integral_sum)
+            + pid._compute_proportional_response(error)
+        )
+        np.equal(feedback, pid.step(current - 1, target - 1))
+        np.equal(timeseries, pid.error_timeseries)
