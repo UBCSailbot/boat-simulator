@@ -97,11 +97,12 @@ class DataCollectionNode(Node):
 
         self.__sub_topic_names = {}
 
-        # Assuming topics are specified as ['topic_name', 'topic_type']
-        for i in range(1, len(self.sub_topics), 2):
-            topic_name = self.sub_topics[i - 1]
-            msg_type_name = self.sub_topics[i]
-
+        # Get topic names by extracting from all evenly indexed elements and all topic types from
+        # oddly indexed elements since it is assumed that topic name and type alternate in the list
+        # For example, [name1, type1, name2, type2, ...]
+        topic_names = self.sub_topics[::2]
+        topic_types = self.sub_topics[1::2]
+        for topic_name, msg_type_name in zip(topic_names, topic_types):
             if msg_type_name not in self.__msg_types_dict:
                 self.get_logger().error(
                     f"msg type {msg_type_name} does not exist. Please adjust the topics array in \
@@ -180,10 +181,11 @@ class DataCollectionNode(Node):
         if all(self.__data_to_write.values()):
             time_in_seconds = (self.get_clock().now().nanoseconds - self.__start_time) / 1e9
             self.__data_to_write["time"] = time_in_seconds
-            if self.__json_index_counter > 0:
-                self.__json_file.write(",\n")
             item_to_write = {self.__json_index_counter: self.__data_to_write}
-            json.dump(item_to_write, self.__json_file, indent=4)
+            json_string = json.dumps(item_to_write, indent=4)
+            if self.__json_index_counter > 0:
+                json_string = ",\n" + json_string
+            self.__json_file.write(json_string)
             self.__json_index_counter += 1
 
     # SHUTDOWN CALLBACKS
