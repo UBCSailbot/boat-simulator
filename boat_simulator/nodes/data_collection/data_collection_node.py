@@ -47,6 +47,9 @@ def is_collection_enabled() -> bool:
 
 
 class DataCollectionNode(Node):
+    # TODO: Abstract the file writing operations and remove redundant checks for self.use_json and
+    # self.use_bag.
+
     def __init__(self):
         super().__init__(node_name="data_collection_node")
         self.get_logger().debug("Initializing node...")
@@ -123,15 +126,17 @@ class DataCollectionNode(Node):
 
         self.__data_to_write = {}
         self.__json_index_counter = 0
-        self.__start_time = self.get_clock().now().nanoseconds
         json_file_path = os.path.join(".", self.file_name + ".json")
+
         if os.path.exists(json_file_path):
             self.get_logger().warn(
                 f"JSON file with name {self.file_name} already exists. Overriding old file..."
             )
             os.remove(json_file_path)
+
         self.__json_file = open(json_file_path, "a")
         self.__json_file.write("[\n")  # Open JSON array
+
         for topic_name in self.__sub_topic_names.keys():
             self.__data_to_write[topic_name] = None
 
@@ -145,6 +150,7 @@ class DataCollectionNode(Node):
         )
         converter_options = rosbag2_py._storage.ConverterOptions("", "")
         self.__writer.open(storage_options, converter_options)
+
         for topic_name, msg_type_name in self.__sub_topic_names.items():
             topic_info = rosbag2_py._storage.TopicMetadata(
                 name=topic_name,
@@ -176,10 +182,10 @@ class DataCollectionNode(Node):
 
     # TIMER CALLBACKS
     def __write_to_json(self):
-        # Only concern with this is if topic subscribed to is not launched, then we will never
-        # write to json for all the other ones will never get written
+        # TODO: Handle the case where the subscribed topic is not launched to ensure data is
+        # written to JSON.
         if all(self.__data_to_write.values()):
-            time_in_seconds = (self.get_clock().now().nanoseconds - self.__start_time) / 1e9
+            time_in_seconds = self.__json_index_counter * self.json_write_period
             self.__data_to_write["time"] = time_in_seconds
             item_to_write = {self.__json_index_counter: self.__data_to_write}
             json_string = json.dumps(item_to_write, indent=4)
