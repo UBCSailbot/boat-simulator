@@ -35,7 +35,7 @@ def main(args=None):
             rclpy.shutdown()
 
 
-def is_collection_enabled():
+def is_collection_enabled() -> bool:
     try:
         is_data_collection_enabled_index = (
             sys.argv.index(Constants.DATA_COLLECTION_CLI_ARG_NAME) + 1
@@ -51,9 +51,12 @@ class DataCollectionNode(Node):
         super().__init__(node_name="data_collection_node")
         self.get_logger().debug("Initializing node...")
         self.__declare_ros_parameters()
-        self.__init_storage_files()
         self.__init_msg_types_dict()
         self.__init_subscriptions()
+        if self.use_json:
+            self.__init_json_file()
+        if self.use_bag:
+            self.__init_ros_bag()
         self.__init_timer_callbacks()
         self.__init_shutdown_callbacks()
         self.get_logger().debug("Node initialization complete. Starting execution...")
@@ -80,31 +83,6 @@ class DataCollectionNode(Node):
             value_str = str(parameter.value)
             self.get_logger().debug(f"Got parameter {name} with value {value_str}")
 
-    def __init_storage_files(self):
-        """Initializes storage files for data logging."""
-        self.get_logger().debug("Initializing storrage files...")
-
-        if self.use_json:
-            self.__data_to_write = {}
-            self.__json_index_counter = 0
-            self.__start_time = self.get_clock().now().nanoseconds
-            json_file_path = "./" + self.file_name + ".json"
-            if os.path.exists(json_file_path):
-                self.get_logger().warn(
-                    f"JSON file with name {self.file_name} already exists. Overriding old file..."
-                )
-                os.remove(json_file_path)
-            self.__json_file = open(json_file_path, "a")
-            self.__json_file.write("[\n")  # Open JSON array
-
-        if self.use_bag:
-            self.__writer = rosbag2_py.SequentialWriter()
-            storage_options = rosbag2_py._storage.StorageOptions(
-                uri=self.file_name, storage_id="sqlite3"
-            )
-            converter_options = rosbag2_py._storage.ConverterOptions("", "")
-            self.__writer.open(storage_options, converter_options)
-
     def __init_msg_types_dict(self):
         """Prepare dictionary of all msg types with key name and value class"""
         self.__msg_types_dict = {}
@@ -117,20 +95,12 @@ class DataCollectionNode(Node):
         from which data will be collected."""
         self.get_logger().debug("Initializing subscriptions...")
 
-        def create_subscription_with_callback(topic_name, msg_type):
-            return self.create_subscription(
-                msg_type=msg_type,
-                topic=topic_name,
-                callback=lambda msg: self.__general_sub_callback(msg, topic_name),
-                qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
-            )
-
-        self.__record_topics_sub = []
+        self.__sub_topic_names = {}
 
         # Assuming topics are specified as ['topic_name', 'topic_type']
-        for i in range(1, len(self.topics_to_record), 2):
-            topic_name = self.topics_to_record[i - 1]
-            msg_type_name = self.topics_to_record[i]
+        for i in range(1, len(self.sub_topics), 2):
+            topic_name = self.sub_topics[i - 1]
+            msg_type_name = self.sub_topics[i]
 
             if msg_type_name not in self.__msg_types_dict:
                 self.get_logger().error(
@@ -138,18 +108,49 @@ class DataCollectionNode(Node):
                         globals.yaml"
                 )
 
-            self.__record_topics_sub.append(
-                create_subscription_with_callback(topic_name, self.__msg_types_dict[msg_type_name])
+            self.__sub_topic_names[topic_name] = msg_type_name
+            self.create_subscription(
+                msg_type=self.__msg_types_dict[msg_type_name],
+                topic=topic_name,
+                callback=lambda msg: self.__general_sub_callback(msg, topic_name),
+                qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             )
 
-            if self.use_json:
-                self.__data_to_write[topic_name] = None
+    def __init_json_file(self):
+        """Initializes json file for data logging."""
+        self.get_logger().debug("Initializing json file...")
 
-            if self.use_bag:
-                topic_info = rosbag2_py._storage.TopicMetadata(
-                    name=topic_name, type=msg_type_name, serialization_format="cdr"
-                )
-                self.__writer.create_topic(topic_info)
+        self.__data_to_write = {}
+        self.__json_index_counter = 0
+        self.__start_time = self.get_clock().now().nanoseconds
+        json_file_path = os.path.join(".", self.file_name + ".json")
+        if os.path.exists(json_file_path):
+            self.get_logger().warn(
+                f"JSON file with name {self.file_name} already exists. Overriding old file..."
+            )
+            os.remove(json_file_path)
+        self.__json_file = open(json_file_path, "a")
+        self.__json_file.write("[\n")  # Open JSON array
+        for topic_name in self.__sub_topic_names.keys():
+            self.__data_to_write[topic_name] = None
+
+    def __init_ros_bag(self):
+        """Initializes ros bag for data logging."""
+        self.get_logger().debug("Initializing ros bag...")
+
+        self.__writer = rosbag2_py.SequentialWriter()
+        storage_options = rosbag2_py._storage.StorageOptions(
+            uri=self.file_name, storage_id="sqlite3"
+        )
+        converter_options = rosbag2_py._storage.ConverterOptions("", "")
+        self.__writer.open(storage_options, converter_options)
+        for topic_name, msg_type_name in self.__sub_topic_names.items():
+            topic_info = rosbag2_py._storage.TopicMetadata(
+                name=topic_name,
+                type=msg_type_name,
+                serialization_format="cdr",
+            )
+            self.__writer.create_topic(topic_info)
 
     def __init_timer_callbacks(self):
         """Initializes timer callbacks of this node that are executed periodically."""
@@ -202,7 +203,7 @@ class DataCollectionNode(Node):
         return self.get_parameter("file_name").get_parameter_value().string_value
 
     @property
-    def topics_to_record(self):
+    def sub_topics(self):
         return self.get_parameter("topics").get_parameter_value().string_array_value
 
     @property
