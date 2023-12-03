@@ -6,7 +6,7 @@ import json
 import os
 import signal
 import sys
-from typing import Type
+from typing import Any, Type
 
 import custom_interfaces.msg
 import rclpy
@@ -19,8 +19,14 @@ from rclpy.serialization import serialize_message
 import boat_simulator.common.constants as Constants
 
 
-def shutdown_handler(signum, frame):
-    """Necessary for ros shutdown callback to be properly called."""
+def shutdown_handler(signum: int, frame: Any) -> None:
+    """Exit the program gracefully in response to a shutdown signal. This function is necessary for
+    the ROS shutdown callback to be properly called.
+
+    Args:
+        signum (int): The signal number associated with the signal received.
+        frame (Any): The current execution frame at the time the signal was received.
+    """
     sys.exit(0)
 
 
