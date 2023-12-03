@@ -111,12 +111,13 @@ class DataCollectionNode(Node):
                     f"msg type {msg_type_name} does not exist. Please adjust the topics array in \
                         globals.yaml"
                 )
+                continue
 
             self.__sub_topic_names[topic_name] = msg_type_name
             self.create_subscription(
                 msg_type=self.__msg_types_dict[msg_type_name],
                 topic=topic_name,
-                callback=lambda msg: self.__general_sub_callback(msg, topic_name),
+                callback=lambda msg, tn=topic_name: self.__general_sub_callback(msg, tn),
                 qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             )
 
@@ -184,9 +185,8 @@ class DataCollectionNode(Node):
     def __write_to_json(self):
         # TODO: Handle the case where the subscribed topic is not launched to ensure data is
         # written to JSON.
-        if all(self.__data_to_write.values()):
-            time_in_seconds = self.__json_index_counter * self.json_write_period
-            self.__data_to_write["time"] = time_in_seconds
+        if not any(value is None for value in self.__data_to_write.values()):
+            self.__data_to_write["time"] = self.__json_index_counter * self.json_write_period
             item_to_write = {self.__json_index_counter: self.__data_to_write}
             json_string = json.dumps(item_to_write, indent=4)
             if self.__json_index_counter > 0:
