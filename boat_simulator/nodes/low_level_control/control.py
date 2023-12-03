@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from math import atan2, cos, sin
-from typing import Any
+from typing import Any, List
 
 from boat_simulator.common.types import Scalar
 from boat_simulator.common.utils import bound_to_180
@@ -31,8 +31,7 @@ class PID(ABC):
         kd: Scalar,
         time_period: Scalar,
         buf_size: int,
-        integral_sum: Any,
-        sum_threshold: Any,
+        sum_threshold: Scalar,
     ):
         """Initializes the class attributes. Note that this class cannot be directly instantiated.
 
@@ -50,8 +49,8 @@ class PID(ABC):
         self.kd = kd
         self.buf_size = buf_size
         self.time_period = time_period
-        self.error_timeseries = list()
-        self.integral_sum = integral_sum
+        self.error_timeseries: List[Scalar] = list()
+        self.integral_sum: Scalar = 0
         self.sum_threshold = sum_threshold
 
     def step(self, current: Any, target: Any) -> Scalar:
@@ -74,7 +73,7 @@ class PID(ABC):
         self.append_error(error)
         return feedback
 
-    def reset(self, is_latest_error_kept: bool = False) -> None:
+    def reset(self, is_latest_error_kept: bool = False):
         """Empties the error timeseries of the PID controller, effectively starting a new
         control iteration.
 
@@ -83,7 +82,6 @@ class PID(ABC):
                 timeseries to avoid starting from scratch if the target remains the same. False
                 if the timeseries should be completely emptied. Defaults to False.
         """
-
         self.error_timeseries.clear
 
     def append_error(self, error: Scalar) -> None:
@@ -167,8 +165,7 @@ class VanilaPID(PID):
         kd: Scalar,
         time_period: Scalar,
         buf_size: int,
-        integral_sum: Any,
-        sum_threshold,
+        sum_threshold: Scalar,
     ):
         """Initializes the class attributes.
 
@@ -179,7 +176,7 @@ class VanilaPID(PID):
             `time_period` (Scalar): Time period between error samples.
             `buf_size` (int): The max number of error samples to store for integral component.
             `last_error` (float): The error calculated in the previous iteration
-            `integral_sum` (int): The running total of integral sum from integral response
+            `integral_sum` (Scalar): The running total of integral sum from integral response
         """
         super().__init__(
             kp,
@@ -187,7 +184,6 @@ class VanilaPID(PID):
             kd,
             time_period,
             buf_size,
-            integral_sum,
             sum_threshold,
         )
 
