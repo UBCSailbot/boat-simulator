@@ -50,9 +50,6 @@ class PID(ABC):
         self.buf_size = buf_size
         self.time_period = time_period
         self.error_timeseries = list()
-
-        # TODO You can store this value, but don't pass the initial value in the init function.
-        # Just initialize as zero.
         self.integral_sum = integral_sum
 
     def step(self, current: Any, target: Any) -> Scalar:
@@ -67,15 +64,12 @@ class PID(ABC):
         """
 
         error = self._compute_error(current, target)
-
-        # TODO Use the append_error function that you wrote. Also, error should be appended
-        # after the feedback is computed
-        self.error_timeseries.append(error)
         feedback = (
             self._compute_derivative_response(error)
             + self._compute_integral_response(error, self.integral_sum)
             + self._compute_proportional_response(error)
         )
+        self.append_error(error)
         return feedback
 
     def reset(self, is_latest_error_kept: bool = False) -> None:
@@ -101,9 +95,7 @@ class PID(ABC):
         if len(self.error_timeseries) < self.buf_size:
             self.error_timeseries.append(error)
         else:
-            # TODO for the case when you have to remove an entry, remember to update the
-            # integral sum by subtracting off the oldest error. Otherwise, the integral sum
-            # will explode
+            self.integral_sum -= self.error_timeseries(0) * self.time_period
             self.error_timeseries.pop(0)
             self.error_timeseries.append(error)
 
@@ -202,10 +194,9 @@ class VanilaPID(PID):
     def _compute_integral_response(self, error: Any, integral_sum: Any) -> Scalar:
         integral_sum += self.time_period * error  # adds new integral response to running total
 
-        # TODO Multiply by ki
         # TODO You should also bound the integral sum to prevent it from exploding
         # This threshold could be specified in the init function
-        return integral_sum
+        return self.ki * integral_sum
 
     def _compute_derivative_response(self, error) -> Scalar:
         if not self.error_timeseries:
@@ -240,8 +231,7 @@ class RobotPID(VanilaPID):
     Extends: VanilaPID
     """
 
-    # TODO Change the current - target
     def _compute_error(
         self, current: Scalar, target: Scalar
     ) -> Scalar:  # target and current positions
-        return target - current
+        return current - target
