@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from math import atan2, cos, sin
-from typing import Any, List
+from typing import Any
 
 from boat_simulator.common.types import Scalar
 from boat_simulator.common.utils import bound_to_180
@@ -32,6 +32,7 @@ class PID(ABC):
         time_period: Scalar,
         buf_size: int,
         integral_sum: Any,
+        sum_threshold: Any,
     ):
         """Initializes the class attributes. Note that this class cannot be directly instantiated.
 
@@ -51,6 +52,7 @@ class PID(ABC):
         self.time_period = time_period
         self.error_timeseries = list()
         self.integral_sum = integral_sum
+        self.sum_threshold = sum_threshold
 
     def step(self, current: Any, target: Any) -> Scalar:
         """Computes the correction factor.
@@ -66,7 +68,7 @@ class PID(ABC):
         error = self._compute_error(current, target)
         feedback = (
             self._compute_derivative_response(error)
-            + self._compute_integral_response(error, self.integral_sum)
+            + self._compute_integral_response(error)
             + self._compute_proportional_response(error)
         )
         self.append_error(error)
@@ -95,7 +97,7 @@ class PID(ABC):
         if len(self.error_timeseries) < self.buf_size:
             self.error_timeseries.append(error)
         else:
-            self.integral_sum -= self.error_timeseries(0) * self.time_period
+            self.integral_sum -= self.error_timeseries[0] * self.time_period
             self.error_timeseries.pop(0)
             self.error_timeseries.append(error)
 
@@ -124,7 +126,7 @@ class PID(ABC):
         pass
 
     @abstractmethod
-    def _compute_integral_response(self, error: Any, integral_sum: Any) -> Scalar:
+    def _compute_integral_response(self, error: Any) -> Scalar:
         """
         Args:
             error (Any): Current calculated error for present iteration
@@ -165,8 +167,8 @@ class VanilaPID(PID):
         kd: Scalar,
         time_period: Scalar,
         buf_size: int,
-        error_timeseries: list,
         integral_sum: Any,
+        sum_threshold,
     ):
         """Initializes the class attributes.
 
@@ -186,17 +188,20 @@ class VanilaPID(PID):
             time_period,
             buf_size,
             integral_sum,
+            sum_threshold,
         )
 
     def _compute_proportional_response(self, error: Any) -> Scalar:
-        return self.kp * error  # return proportional response
+        return self.kp * error
 
-    def _compute_integral_response(self, error: Any, integral_sum: Any) -> Scalar:
-        integral_sum += self.time_period * error  # adds new integral response to running total
+    def _compute_integral_response(self, error: Any) -> Scalar:
+        current_sum = self.integral_sum + (self.time_period * error)
 
-        # TODO You should also bound the integral sum to prevent it from exploding
-        # This threshold could be specified in the init function
-        return self.ki * integral_sum
+        if abs(current_sum) < self.sum_threshold:
+            self.integral_sum = current_sum
+        else:
+            self.integral_sum = self.sum_threshold
+        return self.ki * self.integral_sum
 
     def _compute_derivative_response(self, error) -> Scalar:
         if not self.error_timeseries:
@@ -212,12 +217,8 @@ class RudderPID(VanilaPID):
     Extends: VanilaPID
     """
 
-    def _compute_error(
-        self, current: Scalar, target: Scalar
-    ) -> Scalar:  # target and current in degrees
-        error = atan2(
-            sin(target - current), cos(target - current)
-        )  # return error in radians between pi and -pi
+    def _compute_error(self, current: Scalar, target: Scalar) -> Scalar:
+        error = atan2(sin(target - current), cos(target - current))
         current_bound = bound_to_180(current)
         target_bound = bound_to_180(target)
         if current_bound == target_bound:
