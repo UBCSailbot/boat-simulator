@@ -187,10 +187,10 @@ class VanilaPID(PID):
             sum_threshold,
         )
 
-    def _compute_proportional_response(self, error: Any) -> Scalar:
+    def _compute_proportional_response(self, error: Scalar) -> Scalar:
         return self.kp * error
 
-    def _compute_integral_response(self, error: Any) -> Scalar:
+    def _compute_integral_response(self, error: Scalar) -> Scalar:
         current_sum = self.integral_sum + (self.time_period * error)
 
         if abs(current_sum) < self.sum_threshold:
@@ -199,7 +199,7 @@ class VanilaPID(PID):
             self.integral_sum = self.sum_threshold
         return self.ki * self.integral_sum
 
-    def _compute_derivative_response(self, error) -> Scalar:
+    def _compute_derivative_response(self, error: Scalar) -> Scalar:
         if not self.error_timeseries:
             return 0
         else:
@@ -228,7 +228,5 @@ class RobotPID(VanilaPID):
     Extends: VanilaPID
     """
 
-    def _compute_error(
-        self, current: Scalar, target: Scalar
-    ) -> Scalar:  # target and current positions
-        return current - target
+    def _compute_error(self, current: Scalar, target: Scalar) -> Scalar:
+        return target - current
