@@ -128,7 +128,7 @@ class DataCollectionNode(Node):
             )
 
     def __init_json_file(self):
-        """Initializes json file for data logging."""
+        """Initializes a JSON file for data logging."""
         self.get_logger().debug("Initializing json file...")
 
         self.__data_to_write = {}
@@ -212,7 +212,7 @@ class DataCollectionNode(Node):
 
     # SHUTDOWN CALLBACKS
     def __shutdown_callback(self):
-        """Shutdown callback to close bag and json."""
+        """Shutdown callback to close JSON file and ros bag."""
         self.get_logger().debug("Closing the storage files...")
 
         if self.use_json:
