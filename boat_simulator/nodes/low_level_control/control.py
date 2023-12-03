@@ -24,18 +24,6 @@ class PID(ABC):
 
     """
 
-    # Private class member defaults
-
-    # TODO Remove these and add as defualts to the init function
-    __kp: Scalar = 9.691
-    __ki: Scalar = 13.78
-    __kd: Scalar = 0.6658
-    __time_period: Scalar = 1
-    __buf_size: int = 50
-    __error_timeseries: List[Scalar] = list()
-    __last_error: Any = 0
-    __integral_sum: Any = 0
-
     def __init__(
         self,
         kp: Scalar,
@@ -43,7 +31,7 @@ class PID(ABC):
         kd: Scalar,
         time_period: Scalar,
         buf_size: int,
-        error_timeseries: list,
+        error_timeseries: List,
         last_error: Any,
         integral_sum: Any,
     ):
@@ -58,19 +46,19 @@ class PID(ABC):
             `last_error` (float): The error calculated in the previous iteration
             `integral_sum` (int): The running total of integral sum from integral response
         """
-        self.__kp = kp
-        self.__ki = ki
-        self.__kd = kd
-        self.__buf_size = buf_size
-        self.__time_period = time_period
-        self.__error_timeseries = list()
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.buf_size = buf_size
+        self.time_period = time_period
+        self.error_timeseries = list()
 
         # TODO Just use the error timeseries to get the latest error
-        self.__last_error = last_error
+        self.last_error = last_error
 
         # TODO You can store this value, but don't pass the initial value in the init function.
         # Just initialize as zero.
-        self.__integral_sum = integral_sum
+        self.integral_sum = integral_sum
 
     def step(self, current: Any, target: Any) -> Scalar:
         """Computes the correction factor.
@@ -87,13 +75,13 @@ class PID(ABC):
 
         # TODO Use the append_error function that you wrote. Also, error should be appended
         # after the feedback is computed
-        self.__error_timeseries.append(error)
+        self.error_timeseries.append(error)
         feedback = (
-            self._compute_derivative_response(error, self.__last_error)
-            + self._compute_integral_response(error, self.__integral_sum)
+            self._compute_derivative_response(error, self.last_error)
+            + self._compute_integral_response(error, self.integral_sum)
             + self._compute_proportional_response(error)
         )
-        self.__last_error = error
+        self.last_error = error
         return feedback
 
     def reset(self, is_latest_error_kept: bool = False) -> None:
@@ -172,39 +160,6 @@ class PID(ABC):
             Scalar: The derivative component of the correction factor.
         """
         pass
-
-    # TODO Remove these
-    @property
-    def kp(self) -> Scalar:
-        return self.__kp
-
-    @property
-    def ki(self) -> Scalar:
-        return self.__ki
-
-    @property
-    def kd(self) -> Scalar:
-        return self.__kd
-
-    @property
-    def buf_size(self) -> Scalar:
-        return self.__buf_size
-
-    @property
-    def time_period(self) -> Scalar:
-        return self.__time_period
-
-    @property
-    def last_error(self) -> Scalar:
-        return self.__last_error
-
-    @property
-    def integral_sum(self) -> Scalar:
-        return self.__integral_sum
-
-    @property
-    def error_timeseries(self) -> List[Scalar]:
-        return self.__error_timeseries
 
 
 class VanilaPID(PID):
