@@ -25,6 +25,8 @@ class PID(ABC):
     """
 
     # Private class member defaults
+
+    # TODO Remove these and add as defualts to the init function
     __kp: Scalar = 9.691
     __ki: Scalar = 13.78
     __kd: Scalar = 0.6658
@@ -62,7 +64,12 @@ class PID(ABC):
         self.__buf_size = buf_size
         self.__time_period = time_period
         self.__error_timeseries = list()
+
+        # TODO Just use the error timeseries to get the latest error
         self.__last_error = last_error
+
+        # TODO You can store this value, but don't pass the initial value in the init function.
+        # Just initialize as zero.
         self.__integral_sum = integral_sum
 
     def step(self, current: Any, target: Any) -> Scalar:
@@ -75,7 +82,11 @@ class PID(ABC):
         Returns:
             Scalar: Correction factor.
         """
+
         error = self._compute_error(current, target)
+
+        # TODO Use the append_error function that you wrote. Also, error should be appended
+        # after the feedback is computed
         self.__error_timeseries.append(error)
         feedback = (
             self._compute_derivative_response(error, self.__last_error)
@@ -108,6 +119,9 @@ class PID(ABC):
         if len(self.error_timeseries) < self.buf_size:
             self.error_timeseries.append(error)
         else:
+            # TODO for the case when you have to remove an entry, remember to update the
+            # integral sum by subtracting off the oldest error. Otherwise, the integral sum
+            # will explode
             self.error_timeseries.pop(0)
             self.error_timeseries.append(error)
 
@@ -159,6 +173,7 @@ class PID(ABC):
         """
         pass
 
+    # TODO Remove these
     @property
     def kp(self) -> Scalar:
         return self.__kp
@@ -229,10 +244,18 @@ class VanilaPID(PID):
 
     def _compute_integral_response(self, error: Any, integral_sum: Any) -> Scalar:
         integral_sum += self.time_period * error  # adds new integral response to running total
+
+        # TODO Multiply by ki
+        # TODO You should also bound the integral sum to prevent it from exploding
+        # This threshold could be specified in the init function
         return integral_sum
 
+    # TODO Remove the last_error argument and just extract the last error from the error_timeseries
+    # If you have no last error (i.e. the error timeseries is empty), then just return zero
     def _compute_derivative_response(self, error, last_error: Any) -> Scalar:
         derivative_response = (error - last_error) / self.time_period  # calculates change in error
+
+        # TODO Multiply by kd
         return derivative_response
 
 
@@ -261,6 +284,7 @@ class RobotPID(VanilaPID):
     Extends: VanilaPID
     """
 
+    # TODO Change the current - target
     def _compute_error(
         self, current: Scalar, target: Scalar
     ) -> Scalar:  # target and current positions
