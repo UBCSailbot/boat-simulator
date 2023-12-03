@@ -172,6 +172,14 @@ class DataCollectionNode(Node):
 
     # SUBSCRIPTION CALLBACKS
     def __general_sub_callback(self, msg: Type, topic_name: str):
+        """General subscription callback triggered when subscribed topics publish new data. For
+        JSON this function stores the message to later be written into the file by a timer
+        callback, and for ros bag this writes the message to the bag.
+
+        Args:
+            msg (Type): The message published by the subscribed topic.
+            topic_name (str): The name of the topic that published the message.
+        """
         if self.use_json:
             msg_as_ord_dict = rosidl_runtime_py.message_to_ordereddict(msg)
             self.__data_to_write[topic_name] = msg_as_ord_dict
@@ -183,6 +191,8 @@ class DataCollectionNode(Node):
 
     # TIMER CALLBACKS
     def __write_to_json(self):
+        """Write the most recent data to a JSON file if all subscribed topics have received at
+        least one message."""
         # TODO: Handle the case where the subscribed topic is not launched to ensure data is
         # written to JSON.
         if not any(value is None for value in self.__data_to_write.values()):
