@@ -31,8 +31,6 @@ class PID(ABC):
         kd: Scalar,
         time_period: Scalar,
         buf_size: int,
-        error_timeseries: List,
-        last_error: Any,
         integral_sum: Any,
     ):
         """Initializes the class attributes. Note that this class cannot be directly instantiated.
@@ -52,9 +50,6 @@ class PID(ABC):
         self.buf_size = buf_size
         self.time_period = time_period
         self.error_timeseries = list()
-
-        # TODO Just use the error timeseries to get the latest error
-        self.last_error = last_error
 
         # TODO You can store this value, but don't pass the initial value in the init function.
         # Just initialize as zero.
@@ -77,11 +72,10 @@ class PID(ABC):
         # after the feedback is computed
         self.error_timeseries.append(error)
         feedback = (
-            self._compute_derivative_response(error, self.last_error)
+            self._compute_derivative_response(error)
             + self._compute_integral_response(error, self.integral_sum)
             + self._compute_proportional_response(error)
         )
-        self.last_error = error
         return feedback
 
     def reset(self, is_latest_error_kept: bool = False) -> None:
@@ -150,7 +144,7 @@ class PID(ABC):
         pass
 
     @abstractmethod
-    def _compute_derivative_response(self, error: Any, last_error: Any) -> Scalar:
+    def _compute_derivative_response(self, error: Any) -> Scalar:
         """
          Args:
             error (Any): Current calculated error for present iteration
@@ -160,6 +154,10 @@ class PID(ABC):
             Scalar: The derivative component of the correction factor.
         """
         pass
+
+    @property
+    def last_error(self):
+        return self.error_timeseries[-1]
 
 
 class VanilaPID(PID):
@@ -177,7 +175,6 @@ class VanilaPID(PID):
         buf_size: int,
         error_timeseries: list,
         integral_sum: Any,
-        last_error: Any,
     ):
         """Initializes the class attributes.
 
@@ -191,7 +188,12 @@ class VanilaPID(PID):
             `integral_sum` (int): The running total of integral sum from integral response
         """
         super().__init__(
-            kp, ki, kd, time_period, buf_size, error_timeseries, integral_sum, last_error
+            kp,
+            ki,
+            kd,
+            time_period,
+            buf_size,
+            integral_sum,
         )
 
     def _compute_proportional_response(self, error: Any) -> Scalar:
@@ -205,13 +207,12 @@ class VanilaPID(PID):
         # This threshold could be specified in the init function
         return integral_sum
 
-    # TODO Remove the last_error argument and just extract the last error from the error_timeseries
-    # If you have no last error (i.e. the error timeseries is empty), then just return zero
-    def _compute_derivative_response(self, error, last_error: Any) -> Scalar:
-        derivative_response = (error - last_error) / self.time_period  # calculates change in error
-
-        # TODO Multiply by kd
-        return derivative_response
+    def _compute_derivative_response(self, error) -> Scalar:
+        if not self.error_timeseries:
+            return 0
+        else:
+            derivative_response = (error - self.last_error) / self.time_period
+            return self.kd * derivative_response
 
 
 class RudderPID(VanilaPID):
