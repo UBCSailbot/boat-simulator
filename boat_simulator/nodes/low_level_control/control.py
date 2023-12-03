@@ -82,6 +82,7 @@ class PID(ABC):
                 timeseries to avoid starting from scratch if the target remains the same. False
                 if the timeseries should be completely emptied. Defaults to False.
         """
+        self.integral_sum = 0
         self.error_timeseries.clear
 
     def append_error(self, error: Scalar) -> None:
