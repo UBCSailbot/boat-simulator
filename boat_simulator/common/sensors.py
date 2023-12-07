@@ -62,6 +62,17 @@ class Sensor:
 
 @dataclass
 class WindSensor(Sensor):
+    """
+    Abstraction for wind sensor.
+
+    # TODO: Add delay functions.
+
+    Properties:
+        wind (ScalarOrArray): Wind x, y components or single value
+        wind_noisemaker (Optional[MVGaussianGenerator | ConstantGenerator]):
+        Noise function to emulate sensor noise in wind data reading
+    """
+
     wind: ScalarOrArray
     wind_noisemaker: WindSensorGenerators = None
 
@@ -80,13 +91,30 @@ class WindSensor(Sensor):
 
 @dataclass
 class GPS(Sensor):
+    """
+    Abstraction for GPS.
+
+    # TODO: Add delay functions.
+
+    Properties:
+        lat_lon (NDArray): Boat latitude and longitude (2x1 array)
+        speed (Scalar): Boat speed
+        heading (Scalar): Boat heading
+        lat_lon_noisemaker (Optional[GaussianGenerator | ConstantGenerator]):
+        Noise function to emulate sensor noise in latitude and longitude readings
+        speed_noisemaker (Optional[GaussianGenerator | ConstantGenerator]):
+        Noise function to emulate sensor noise in speed readings
+        heading_noisemaker (Optional[GaussianGenerator | ConstantGenerator]):
+        Noise function to emulate sensor noise in heading readings
+    """
+
     lat_lon: NDArray
     speed: Scalar
     heading: Scalar
 
-    lat_lon_noisemaker: GPSGenerators = None  # type: ignore
-    speed_noisemaker: GPSGenerators = None  # type: ignore
-    heading_noisemaker: GPSGenerators = None  # type: ignore
+    lat_lon_noisemaker: GPSGenerators = None
+    speed_noisemaker: GPSGenerators = None
+    heading_noisemaker: GPSGenerators = None
 
     @property  # type: ignore
     def lat_lon(self) -> NDArray:
