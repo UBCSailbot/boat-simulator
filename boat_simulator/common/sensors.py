@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from typing import Optional
+from typing import Optional, Any
 from numpy.typing import NDArray
 
 
@@ -18,45 +18,64 @@ GPSGenerators = Optional[GaussianGenerator | ConstantGenerator]
 
 @dataclass
 class Sensor:
+    """Interface for sensors in the Boat Simulation."""
+
     def update(self, **kwargs):
+        """
+        Update attributes in Sensor using keyword arguments.
+
+        Usage: Sensor.update(attr1=val1, attr2=val2, ...)
+
+        Raises:
+            ValueError: If kwarg is not a defined attribute in Sensor
+        """
         for attr_name, attr_val in kwargs.items():
             if attr_name in self.__annotations__:
                 setattr(self, attr_name, attr_val)
             else:
                 raise ValueError(
-                    f"""{attr_name} not a property in {self.__class__.__name__}
-                    expected {self.__annotations__}"""
+                    f"{attr_name} not a property in {self.__class__.__name__} \
+                    expected one of {self.__annotations__}"
                 )
 
-    def read(self, key):
+    def read(self, key: str) -> Any:
+        """
+        Read the value from an attribute in Sensor.
+
+        Args:
+            key (str): Attribute name to read from
+
+        Raises:
+            ValueError: If key is not an a defined attribute in Sensor
+
+        Returns:
+            Any: Value stored in attribute with name supplied in "key" argument
+        """
         if key in self.__annotations__:
             return getattr(self, key)
+        else:
+            raise ValueError(
+                f"{key} not a property in {self.__class__.__name__}. \
+                Available keys: {self.__annotations__}"
+            )
 
 
 @dataclass
 class WindSensor(Sensor):
     wind: ScalarOrArray
-    wind_noisemaker: WindSensorGenerators
+    wind_noisemaker: WindSensorGenerators = None
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
         return (
-            self._wind + self._wind_noisemaker.next()  # type: ignore
-            if self._wind_noisemaker is not None
+            self._wind + self.wind_noisemaker.next()  # type: ignore
+            if self.wind_noisemaker is not None
             else self._wind
         )
 
     @wind.setter
     def wind(self, wind: ScalarOrArray):
         self._wind = wind
-
-    @property  # type: ignore
-    def wind_noisemaker(self) -> WindSensorGenerators:
-        return self._wind_noisemaker
-
-    @wind_noisemaker.setter
-    def wind_noisemaker(self, noisemaker: WindSensorGenerators):
-        self._wind_noisemaker = noisemaker
 
 
 @dataclass
@@ -65,15 +84,15 @@ class GPS(Sensor):
     speed: Scalar
     heading: Scalar
 
-    lat_lon_noisemaker: GPSGenerators
-    speed_noisemaker: GPSGenerators
-    heading_noisemaker: GPSGenerators
+    lat_lon_noisemaker: GPSGenerators = None  # type: ignore
+    speed_noisemaker: GPSGenerators = None  # type: ignore
+    heading_noisemaker: GPSGenerators = None  # type: ignore
 
     @property  # type: ignore
     def lat_lon(self) -> NDArray:
         return (
-            self._lat_lon + self._lat_lon_noisemaker.next()
-            if self._lat_lon_noisemaker is not None
+            self._lat_lon + self.lat_lon_noisemaker.next()
+            if self.lat_lon_noisemaker is not None
             else self._lat_lon
         )
 
@@ -84,8 +103,8 @@ class GPS(Sensor):
     @property  # type: ignore
     def speed(self) -> Scalar:
         return (
-            self._speed + self._speed_noisemaker.next()  # type: ignore
-            if self._speed_noisemaker is not None
+            self._speed + self.speed_noisemaker.next()  # type: ignore
+            if self.speed_noisemaker is not None
             else self._speed
         )
 
@@ -96,35 +115,11 @@ class GPS(Sensor):
     @property  # type: ignore
     def heading(self) -> Scalar:
         return (
-            self._heading + self._heading_noisemaker.next()  # type: ignore
-            if self._heading_noisemaker is not None
+            self._heading + self.heading_noisemaker.next()  # type: ignore
+            if self.heading_noisemaker is not None
             else self._heading
         )
 
     @heading.setter
     def heading(self, heading: Scalar):
         self._heading = heading
-
-    @property  # type: ignore
-    def lat_lon_noisemaker(self) -> GPSGenerators:
-        return self._lat_lon_noisemaker
-
-    @lat_lon_noisemaker.setter
-    def lat_lon_noisemaker(self, noisemaker: GPSGenerators):
-        self._lat_lon_noisemaker = noisemaker
-
-    @property  # type: ignore
-    def speed_noisemaker(self) -> GPSGenerators:
-        return self._speed_noisemaker
-
-    @speed_noisemaker.setter
-    def speed_noisemaker(self, noisemaker: GPSGenerators):
-        self._speed_noisemaker = noisemaker
-
-    @property  # type: ignore
-    def heading_noisemaker(self) -> GPSGenerators:
-        return self._heading_noisemaker
-
-    @heading_noisemaker.setter
-    def heading_noisemaker(self, noisemaker: GPSGenerators):
-        self._heading_noisemaker = noisemaker
