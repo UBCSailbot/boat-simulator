@@ -6,7 +6,6 @@ from typing import TypeVar, Union
 import numpy as np
 from numpy.typing import NDArray
 
-
 # Any attribute of a class that extends Enum
 EnumAttr = TypeVar("EnumAttr", bound=Enum)
 
