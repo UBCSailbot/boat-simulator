@@ -78,6 +78,10 @@ class WindSensor(Sensor):
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
+        # TODO: Ensure attribute value and noisemakers are using the same value shape.
+        # - wind scalars should add with noise scalars.
+        # - wind vectors should add with noise vectors.
+        # Could consider using a __post_init__ function for this
         return (
             self._wind + self.wind_noisemaker.next()  # type: ignore
             if self.wind_noisemaker is not None
