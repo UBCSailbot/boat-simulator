@@ -76,6 +76,9 @@ class DataCollectionNode(Node):
         """
         self.get_logger().debug("Declaring ROS parameters...")
 
+        # TODO: Implement a CLI argument in the launch file to enable storing JSON in a human-
+        # readable format as an option, ensuring default behavior prioritizes efficiency over human
+        # readability in file writing.
         self.declare_parameters(
             namespace="",
             parameters=[
@@ -94,6 +97,8 @@ class DataCollectionNode(Node):
 
     def __init_msg_types_dict(self):
         """Prepare dictionary of all msg types with key name and value class"""
+        self.get_logger().debug("Initializing msg types dictionary...")
+
         self.__msg_types_dict = {}
         for name, cls in inspect.getmembers(custom_interfaces.msg, inspect.isclass):
             if not name.startswith("_"):
@@ -115,7 +120,7 @@ class DataCollectionNode(Node):
             if msg_type_name not in self.__msg_types_dict:
                 self.get_logger().error(
                     f"msg type {msg_type_name} does not exist. Please adjust the topics array in \
-                        globals.yaml"
+                        the boat simulator configuration file"
                 )
                 continue
 
