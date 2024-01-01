@@ -63,10 +63,7 @@ class DataCollectionNode(Node):
         self.__declare_ros_parameters()
         self.__init_msg_types_dict()
         self.__init_subscriptions()
-        if self.use_json:
-            self.__init_json_file()
-        if self.use_bag:
-            self.__init_ros_bag()
+        self.__init_io()
         self.__init_timer_callbacks()
         self.__init_shutdown_callbacks()
         self.get_logger().debug("Node initialization complete. Starting execution...")
@@ -135,13 +132,27 @@ class DataCollectionNode(Node):
                 qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             )
 
+    def __init_io(self):
+        """Initialize JSON and ROS Bag files for writing and create the output directory."""
+
+        # Create output directory for written data
+        os.makedirs(Constants.DATA_COLLECTION_OUTPUT_DIR, exist_ok=True)
+
+        # Initialize JSON and ROS bag files
+        if self.use_json:
+            self.__init_json_file()
+        if self.use_bag:
+            self.__init_ros_bag()
+
     def __init_json_file(self):
         """Initializes a JSON file for data logging."""
         self.get_logger().debug("Initializing json file...")
 
         self.__data_to_write = {}
         self.__json_index_counter = 0
-        json_file_path = os.path.join(".", self.file_name + ".json")
+        json_file_path = os.path.join(
+            Constants.DATA_COLLECTION_OUTPUT_DIR, self.file_name + ".json"
+        )
 
         if os.path.exists(json_file_path):
             self.get_logger().warn(
@@ -166,9 +177,8 @@ class DataCollectionNode(Node):
         self.get_logger().debug("Initializing ros bag...")
 
         self.__writer = rosbag2_py.SequentialWriter()
-        storage_options = rosbag2_py._storage.StorageOptions(
-            uri=self.file_name, storage_id="sqlite3"
-        )
+        file_path = os.path.join(Constants.DATA_COLLECTION_OUTPUT_DIR, self.file_name)
+        storage_options = rosbag2_py._storage.StorageOptions(uri=file_path, storage_id="sqlite3")
         converter_options = rosbag2_py._storage.ConverterOptions("", "")
         self.__writer.open(storage_options, converter_options)
 
