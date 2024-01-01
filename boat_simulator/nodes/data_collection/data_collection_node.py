@@ -35,6 +35,7 @@ def main(args=None):
     node = DataCollectionNode()
     if is_collection_enabled():
         try:
+            # TODO Explore alternatives to using the signal library, such as ROS event handlers
             signal.signal(signal.SIGINT, shutdown_handler)
             rclpy.spin(node)
         finally:
@@ -101,6 +102,7 @@ class DataCollectionNode(Node):
 
         self.__msg_types_dict = {}
         for name, cls in inspect.getmembers(custom_interfaces.msg, inspect.isclass):
+            # Do not store hidden classes (which often start with "_" by convention)
             if not name.startswith("_"):
                 self.__msg_types_dict[name] = cls
 
@@ -124,6 +126,7 @@ class DataCollectionNode(Node):
                 )
                 continue
 
+            # Create subscription to each topic specified in the config file
             self.__sub_topic_names[topic_name] = msg_type_name
             self.create_subscription(
                 msg_type=self.__msg_types_dict[msg_type_name],
@@ -142,18 +145,24 @@ class DataCollectionNode(Node):
 
         if os.path.exists(json_file_path):
             self.get_logger().warn(
-                f"JSON file with name {self.file_name} already exists. Overriding old file..."
+                f"JSON file with name {self.file_name} already exists. Overwriting old file..."
             )
             os.remove(json_file_path)
 
+        # Open JSON file in append mode so continuous writes to end of file are possible
         self.__json_file = open(json_file_path, "a")
-        self.__json_file.write("[\n")  # Open JSON array
 
+        # Open JSON array with left bracket (should be closed with right bracket upon shutdown)
+        self.__json_file.write("[\n")
+
+        # Initialize initial data to be None for each topic
         for topic_name in self.__sub_topic_names.keys():
             self.__data_to_write[topic_name] = None
 
     def __init_ros_bag(self):
-        """Initializes ros bag for data logging."""
+        """Initializes ros bag for data logging.
+        https://docs.ros.org/en/humble/Tutorials/Advanced/Recording-A-Bag-From-Your-Own-Node-Py.html
+        """
         self.get_logger().debug("Initializing ros bag...")
 
         self.__writer = rosbag2_py.SequentialWriter()
@@ -204,14 +213,22 @@ class DataCollectionNode(Node):
     def __write_to_json(self):
         """Write the most recent data to a JSON file if all subscribed topics have received at
         least one message."""
+
         # TODO: Handle the case where the subscribed topic is not launched to ensure data is
         # written to JSON.
         if not any(value is None for value in self.__data_to_write.values()):
+            # Recorded time is assumed to be evenly spaced by a specified period
             self.__data_to_write["time"] = self.__json_index_counter * self.json_write_period
+
+            # Create a Python dictionary and serialize it for writing
             item_to_write = {self.__json_index_counter: self.__data_to_write}
             json_string = json.dumps(item_to_write, indent=4)
+
+            # The first entry should not have a prepended comma. All other entries should.
             if self.__json_index_counter > 0:
                 json_string = ",\n" + json_string
+
+            # Write the JSON string to the JSON file and increment the index counter for next write
             self.__json_file.write(json_string)
             self.__json_index_counter += 1
 
@@ -220,12 +237,14 @@ class DataCollectionNode(Node):
         """Shutdown callback to close JSON file and ros bag."""
         self.get_logger().debug("Closing the storage files...")
 
+        # Close the JSON array and then terminate I/O with the JSON file gracefully.
         if self.use_json:
-            self.__json_file.write("\n]")  # Close the JSON array
+            self.__json_file.write("\n]")
             self.__json_file.close()
 
+        # Stop ROS Bag I/O. Needs to be called after JSON close to prevent early exiting.
         if self.use_bag:
-            self.__writer.close()  # Needs to be called after json close to prevent early exit
+            self.__writer.close()
 
     @property
     def file_name(self):
