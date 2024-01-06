@@ -470,10 +470,9 @@ class PhysicsEngineNode(Node):
         """
         self.get_logger().debug("Initiating goal request for sail actuation action")
 
-        # TODO Get desired angular position from sail controller when implemented
         # Create the goal message
         goal_msg = SimSailTrimTabActuation.Goal()
-        goal_msg.desired_angular_position = 0.0
+        goal_msg.desired_angular_position = self.sail_trim_tab_angle
 
         action_send_goal_timeout_sec = (
             self.get_parameter("action_send_goal_timeout_sec").get_parameter_value().double_value
