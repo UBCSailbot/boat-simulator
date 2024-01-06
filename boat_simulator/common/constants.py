@@ -19,6 +19,7 @@ class LowLevelControlSubscriptionTopics:
 @dataclass
 class PhysicsEngineSubscriptionTopics:
     DESIRED_HEADING: str = "desired_heading"
+    SAIL_TRIM_TAB_ANGLE: str = "sail_cmd"
 
 
 @dataclass
