@@ -1,5 +1,6 @@
 """Constants used across the boat simulator package."""
 
+import os
 from dataclasses import dataclass
 from enum import Enum
 
@@ -34,6 +35,9 @@ class PhysicsEnginePublisherTopics:
 # Boat simulator ROS action names
 ACTION_NAMES = Actions()
 
+# Base directory to store the output data from the data collection node
+DATA_COLLECTION_OUTPUT_DIR = os.path.join(str(os.getenv("ROS_WORKSPACE")), "boat_simulator_output")
+
 # ROS topic names for the low level control node subscriptions
 LOW_LEVEL_CTRL_SUBSCRIPTIONS = LowLevelControlSubscriptionTopics()
 
@@ -45,6 +49,9 @@ PHYSICS_ENGINE_PUBLISHERS = PhysicsEnginePublisherTopics()
 
 # ROS topic names for physics engine subscriptions
 PHYSICS_ENGINE_SUBSCRIPTIONS = PhysicsEngineSubscriptionTopics()
+
+# CLI argument name for data collection option
+DATA_COLLECTION_CLI_ARG_NAME = "--enable-data-collection"
 
 # Enumerated orientation indices since indexing pitch, roll, and yaw could be arbitrary
 ORIENTATION_INDICES = Enum("ORIENTATION_INDICES", ["PITCH", "ROLL", "YAW"], start=0)  # x, y, x
