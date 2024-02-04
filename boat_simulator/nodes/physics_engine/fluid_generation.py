@@ -22,7 +22,7 @@ class FluidGenerator:
         """
 
         # TODO: Implement this method
-        pass
+        return np.array([0, 0])
 
     @property
     def velocity(self) -> NDArray:

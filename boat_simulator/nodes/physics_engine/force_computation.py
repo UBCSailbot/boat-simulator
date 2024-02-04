@@ -2,6 +2,7 @@
 
 from typing import Tuple
 
+import numpy as np
 from numpy.typing import NDArray
 
 from boat_simulator.common.types import Scalar
@@ -26,8 +27,8 @@ class ForceComputation:
                 newtons (N).
         """
 
-    # TODO: Implement this method
-    pass
+        # TODO: Implement this method
+        return (np.array([0, 0]), np.array([0, 0]))
 
     @property
     def lift_coefficient(self) -> Scalar:
