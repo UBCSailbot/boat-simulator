@@ -1,5 +1,6 @@
 """Generator for fluid vectors used in the physics engine."""
 
+import numpy as np
 from numpy.typing import NDArray
 
 from boat_simulator.common.generators import VectorGenerator
@@ -9,7 +10,7 @@ from boat_simulator.common.types import Scalar
 class FluidGenerator:
     def __init__(self, generator: VectorGenerator):
         self.__generator = generator
-        self.__velocity = 0
+        self.__velocity = np.array([0, 0])
         self.__speed = 0
         self.__direction = 0
 
