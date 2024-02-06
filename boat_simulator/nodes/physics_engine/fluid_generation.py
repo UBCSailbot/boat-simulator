@@ -19,7 +19,7 @@ class FluidGenerator:
 
     def __init__(self, generator: VectorGenerator):
         self.__generator = generator
-        self.__velocity = self.__generator.next()
+        self.__velocity = np.array(self.__generator.next())
 
     def next(self) -> NDArray:
         """Generates the next velocity vector for the fluid simulation.
@@ -33,25 +33,27 @@ class FluidGenerator:
 
     @property
     def velocity(self) -> NDArray:
-        """Returns the current fluid velocity vector.
+        """Returns the fluid's current velocity vector.
 
         Returns:
-            NDArray: The velocity vector of the fluid, expresed in meters per second (m/s).
+            NDArray: The velocity vector of the fluid, expressed in meters per second (m/s) and
+                ranging from negative infinity to positive infinity.
         """
         return self.__velocity
 
     @property
     def speed(self) -> Scalar:
-        """Calculates the speed of the current fluid velocity vector.
+        """Calculates the current speed of the fluid.
 
         Returns:
-            Scalar: The speed of the fluid, expressed in meters per second (m/s).
+            Scalar: The speed of the fluid, expressed in meters per second (m/s) and within the
+                range of 0 to positive infinity.
         """
         return np.linalg.norm(self.__velocity)
 
     @property
     def direction(self) -> Scalar:
-        """Calculates the direction of the current fluid velocity vector on the x-y plane.
+        """Calculates the current direction of the fluid on the x-y plane.
 
         Returns:
             Scalar: The direction of the fluid, expressed in degrees and bounded between

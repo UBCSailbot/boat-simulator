@@ -19,8 +19,9 @@ class MediumForceComputation:
         `drag_coefficients` (Dict[Scalar, Scalar]): A dictionary mapping angles of attack to drag
             coefficients. Keys represent different angles of attack in degrees, and values
             represent corresponding drag coefficients.
-        `area` (Scalar): The area of the medium exposed to fluid flow, expressed in square meters
-            (m^2).
+        `areas` (Dict[Scalar, Scalar]): A dictionary mapping angles of attack to the area of the
+            medium exposed to fluid flow. Keys represent different angles of attack in degrees, and
+            values represent the corresponding areas in square meters (m^2).
         `fluid_density` (Scalar): The density of the fluid acting on the medium, expressed in
             kilograms per cubic meter (kg/m^3).
     """
@@ -29,12 +30,12 @@ class MediumForceComputation:
         self,
         lift_coefficients: Dict[Scalar, Scalar],
         drag_coefficients: Dict[Scalar, Scalar],
-        area: Scalar,
+        areas: Dict[Scalar, Scalar],
         fluid_density: Scalar,
     ):
         self.__lift_coefficients = lift_coefficients
         self.__drag_coefficients = drag_coefficients
-        self.__area = area
+        self.__areas = areas
         self.__fluid_density = fluid_density
 
     def compute(self, apparent_velocity: NDArray, attack_angle: Scalar) -> Tuple[NDArray, NDArray]:
@@ -64,8 +65,8 @@ class MediumForceComputation:
         return self.__drag_coefficients
 
     @property
-    def area(self) -> Scalar:
-        return self.__area
+    def areas(self) -> Dict[Scalar, Scalar]:
+        return self.__areas
 
     @property
     def fluid_density(self) -> Scalar:
