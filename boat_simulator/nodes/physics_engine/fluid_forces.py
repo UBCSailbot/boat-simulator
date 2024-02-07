@@ -39,13 +39,16 @@ class MediumForceComputation:
         self.__fluid_density = fluid_density
 
     def compute(self, apparent_velocity: NDArray, attack_angle: Scalar) -> Tuple[NDArray, NDArray]:
-        """Calculates the lift and drag forces experienced by a medium due to fluid flow.
+        """Computes the lift and drag forces experienced by a medium immersed in a fluid. It
+        assumes a specific orientation of the medium, where the reference vector is defined as
+        [1, 0].
 
         Args:
             apparent_velocity (NDArray): The apparent (relative) velocity between the fluid and the
                 medium, calculated as the difference between the fluid velocity and the medium
                 velocity (fluid_velocity - medium_velocity), expressed in meters per second (m/s).
-            attack_angle (Scalar):The angle of attack formed between the apparent velocity and the
+                This vector needs to be rotated ahead of time to preserve the same angle of attack.
+            attack_angle (Scalar): The angle of attack formed between the apparent velocity and the
                 reference line of the medium, given in degrees.
 
         Returns:
