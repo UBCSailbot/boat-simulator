@@ -56,6 +56,9 @@ class MediumForceComputation:
 
         raise NotImplementedError()
 
+    # TODO: Create a simple linear interpolation function that uses `np.interp` to compute the
+    # coefficients and area given an angle of attack.
+
     @property
     def lift_coefficients(self) -> NDArray:
         return self.__lift_coefficients
