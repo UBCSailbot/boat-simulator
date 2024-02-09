@@ -27,6 +27,8 @@ class FluidGenerator:
             NDArray: An array representing the updated velocity vector for the fluid simulation.
         """
 
+        # TODO: Implement this to generate the next velocity vector.
+
         raise NotImplementedError()
 
     @property
@@ -47,6 +49,9 @@ class FluidGenerator:
             Scalar: The speed of the fluid, expressed in meters per second (m/s) and within the
                 range of 0 to positive infinity.
         """
+
+        # TODO: Implement this using the current velocity vector.
+
         raise NotImplementedError()
 
     @property
@@ -57,4 +62,7 @@ class FluidGenerator:
             Scalar: The direction of the fluid, expressed in degrees and bounded between
                 [-180, 180).
         """
+
+        # TODO: Implement this using the current velocity vector.
+
         raise NotImplementedError()
