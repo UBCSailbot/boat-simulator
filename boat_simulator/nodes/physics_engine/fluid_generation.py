@@ -5,7 +5,6 @@ from numpy.typing import NDArray
 
 from boat_simulator.common.generators import VectorGenerator
 from boat_simulator.common.types import Scalar
-from boat_simulator.common.utils import bound_to_180
 
 
 class FluidGenerator:
@@ -28,8 +27,7 @@ class FluidGenerator:
             NDArray: An array representing the updated velocity vector for the fluid simulation.
         """
 
-        # TODO: Implement this method
-        return np.array([])
+        raise NotImplementedError()
 
     @property
     def velocity(self) -> NDArray:
@@ -39,7 +37,7 @@ class FluidGenerator:
             NDArray: The velocity vector of the fluid, expressed in meters per second (m/s) and
                 ranging from negative infinity to positive infinity.
         """
-        return self.__velocity
+        raise NotImplementedError()
 
     @property
     def speed(self) -> Scalar:
@@ -49,16 +47,14 @@ class FluidGenerator:
             Scalar: The speed of the fluid, expressed in meters per second (m/s) and within the
                 range of 0 to positive infinity.
         """
-        return np.linalg.norm(self.__velocity)
+        raise NotImplementedError()
 
     @property
     def direction(self) -> Scalar:
-        """Calculates the current direction of the fluid on the x-y plane.
+        """Calculates the current direction of the fluid.
 
         Returns:
             Scalar: The direction of the fluid, expressed in degrees and bounded between
                 [-180, 180).
         """
-        angle_rad = np.arctan2(self.__velocity[1], self.__velocity[0])
-        angle_deg = np.degrees(angle_rad)
-        return bound_to_180(angle_deg)
+        raise NotImplementedError()
