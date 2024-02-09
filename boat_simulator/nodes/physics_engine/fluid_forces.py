@@ -56,8 +56,25 @@ class MediumForceComputation:
 
         raise NotImplementedError()
 
-    # TODO: Create a simple linear interpolation function that uses `np.interp` to compute the
-    # coefficients and area given an angle of attack.
+    def interpolate(self, attack_angle: Scalar) -> Tuple[Scalar, Scalar, Scalar]:
+        """Performs linear interpolation to estimate the lift and drag coefficients, as well as the
+        associated area upon which the fluid acts, based on the provided angle of attack.
+
+            Args:
+                attack_angle (Scalar): The angle of attack formed between the orientation angle of
+                    the medium and the direction of the apparent velocity, expressed in degrees.
+
+            Returns:
+                Tuple[Scalar, Scalar, Scalar]: A tuple representing the computed parameters. The
+                    first scalar denotes the lift coefficient, the second scalar represents the
+                    drag coefficient, and the third scalar indicates the surface area upon which
+                    the fluid acts. Both lift and drag coefficients are unitless, while the
+                    area is expressed in square meters (m^2).
+        """
+
+        # TODO: Implement this method using `np.interp`.
+
+        raise NotImplementedError()
 
     @property
     def lift_coefficients(self) -> NDArray:

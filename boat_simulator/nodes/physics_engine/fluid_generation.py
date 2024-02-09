@@ -39,6 +39,7 @@ class FluidGenerator:
             NDArray: The velocity vector of the fluid, expressed in meters per second (m/s) and
                 ranging from negative infinity to positive infinity.
         """
+
         raise NotImplementedError()
 
     @property
