@@ -45,8 +45,7 @@ class MediumForceComputation:
                 medium, calculated as the difference between the fluid velocity and the medium
                 velocity (fluid_velocity - medium_velocity), expressed in meters per second (m/s).
             orientation (Scalar): The orientation angle of the medium in degrees, where 0 degrees
-                corresponds to the positive x-axis direction, and angles increase counter-clockwise
-                (CCW).
+                corresponds to the positive x-axis, and angles increase counter-clockwise (CCW).
 
         Returns:
             Tuple[NDArray, NDArray]: A tuple containing the lift force and drag force experienced
