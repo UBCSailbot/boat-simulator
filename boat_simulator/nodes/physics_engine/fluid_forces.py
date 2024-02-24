@@ -2,8 +2,11 @@
 
 from typing import Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
+import matplotlib.patches as patches
+from typing import TypeVar
 
 from boat_simulator.common.utils import Scalar
 
@@ -40,27 +43,28 @@ class MediumForceComputation:
 
     def calculate_attack_angle(self, apparent_velocity: NDArray, orientation: Scalar) -> Scalar:
         """Calculates the angle of attack formed between the orientation angle of the medium
-            and the direction of the apparent velocity.
+        and the direction of the apparent velocity, bounded between 0 and 180 degrees.
 
         Args:
             apparent_velocity (NDArray): The apparent (relative) velocity between the fluid and
-                the medium, calculated as the difference between the fluid velocity and the
-                medium velocity (fluid_velocity - medium_velocity), expressed in meters per
-                second (m/s).
-            orientation (Scalar): The orientation angle of the medium in degrees, where 0
-                degrees corresponds to the positive x-axis, and angles increase
-                counter-clockwise (CCW).
+                the medium, expressed in meters per second (m/s).
+            orientation (Scalar): The orientation angle of the medium in degrees.
 
         Returns:
             Scalar: The angle of attack formed between the orientation angle of the medium and
-                the direction of the apparent velocity, expressed in degrees.
+                the direction of the apparent velocity, expressed in degrees and bounded between 0 and 180 degrees.
         """
-
-        return (
+        # Calculate the angle in degrees and normalize it to the range [0, 360)
+        angle_of_attack = (
             np.rad2deg(
                 np.arctan2(apparent_velocity[1], apparent_velocity[0]) - np.deg2rad(orientation)
             )
         ) % 360
+        
+        if angle_of_attack > 180:
+            angle_of_attack = 360 - angle_of_attack
+
+        return angle_of_attack
 
     def compute(self, apparent_velocity: NDArray, orientation: Scalar) -> Tuple[NDArray, NDArray]:
         """Computes the lift and drag forces experienced by a medium immersed in a fluid.
@@ -113,6 +117,8 @@ class MediumForceComputation:
 
         lift_force = lift_force_magnitude * lift_force_direction
         drag_force = drag_force_magnitude * drag_force_direction
+
+        # self.visualize_forces(apparent_velocity, lift_force, drag_force, orientation)
         return lift_force, drag_force
 
     def interpolate(self, attack_angle: Scalar) -> Tuple[Scalar, Scalar, Scalar]:
@@ -139,6 +145,101 @@ class MediumForceComputation:
         )
         area = np.interp(attack_angle, self.__areas[:, 0], self.__areas[:, 1])
         return lift_coefficient, drag_coefficient, area
+
+    def draw_boat(ax, position, orientation):
+        """Draws a simplified boat shape on the given axes."""
+        boat_length = 1.0
+        boat_width = 0.3
+
+        # Create a simple boat shape
+        boat_shape = np.array(
+            [
+                [-boat_length / 2, -boat_width / 2],
+                [boat_length / 2, 0],
+                [-boat_length / 2, boat_width / 2],
+                [-boat_length / 2, -boat_width / 2],
+            ]
+        )
+
+        # Rotate the boat according to the orientation
+        rotation_matrix = np.array(
+            [
+                [np.cos(np.deg2rad(orientation)), -np.sin(np.deg2rad(orientation))],
+                [np.sin(np.deg2rad(orientation)), np.cos(np.deg2rad(orientation))],
+            ]
+        )
+        rotated_boat = np.dot(boat_shape, rotation_matrix)
+
+        # Translate the boat to its position
+        translated_boat = rotated_boat + position
+
+        # Draw the boat
+        ax.plot(translated_boat[:, 0], translated_boat[:, 1], "k")
+
+    def visualize_forces(
+        self, apparent_velocity, lift_force, drag_force, position=[0, 0], orientation=0
+    ):
+        """Visualizes the sailboat, apparent velocity, lift force, and drag force."""
+        fig, ax = plt.subplots()
+
+        # Normalize forces for visualization
+        norm_apparent_velocity = apparent_velocity / np.linalg.norm(apparent_velocity)
+        norm_lift_force = lift_force / np.linalg.norm(lift_force)
+        norm_drag_force = drag_force / np.linalg.norm(drag_force)
+
+        # Draw the boat
+        MediumForceComputation.draw_boat(ax, position, orientation)
+        # Plot forces and velocity
+        ax.quiver(
+            position[0],
+            position[1],
+            norm_apparent_velocity[0],
+            norm_apparent_velocity[1],
+            color="blue",
+            scale=5,
+            label="Apparent Velocity",
+            pivot="tip"
+        )
+        ax.quiver(
+            position[0],
+            position[1],
+            norm_lift_force[0],
+            norm_lift_force[1],
+            color="red",
+            scale=5,
+            label="Lift Force",
+        )
+        ax.quiver(
+            position[0],
+            position[1],
+            norm_drag_force[0],
+            norm_drag_force[1],
+            color="green",
+            scale=5,
+            label="Drag Force",
+        )
+        orientation_rad = np.deg2rad(orientation) # Convert orientation to radians
+        ax.axline((0, 0), slope=np.tan(orientation_rad), color="black", linestyle="--")
+
+        # Calculate angle for drag force
+        drag_angle = np.arctan2(norm_drag_force[1], norm_drag_force[0])
+        
+        # Determine start and end angles for the arc
+        start_angle = np.rad2deg(orientation_rad)
+        end_angle = np.rad2deg(drag_angle)
+        
+        # Draw arc to represent angle between orientation and drag force
+        radius = 0.05
+        arc = patches.Arc(position, 2*radius, 2*radius, angle=0, theta1=min(start_angle, end_angle), theta2=max(start_angle, end_angle), color='purple', label='Angle Arc')
+        ax.add_patch(arc)
+
+        ax.axis("equal")
+        ax.legend()
+        plt.title("Forces Acting on Sailboat")
+        plt.xlabel("X-axis")
+        plt.ylabel("Y-axis")
+        plt.grid(True)
+        plt.show()
 
     @property
     def lift_coefficients(self) -> NDArray:
