@@ -31,7 +31,7 @@ class BoatState:
         """
         self.__kinematics_computation = BoatKinematics(timestep, mass, inertia)
 
-    def step(wind_vel: NDArray) -> Tuple[KinematicsData, KinematicsData]:
+    def step(self, wind_vel: NDArray) -> Tuple[KinematicsData, KinematicsData]:
         """Updates the boat's kinematic data based on applied forces and torques, and returns
         the updated kinematic data in both relative and global reference frames.
 
@@ -43,7 +43,7 @@ class BoatState:
                 kinematic data in the relative reference frame, and the second element representing
                 data in the global reference frame, both using SI units.
         """
-        rel_net_force, net_torque = __compute_net_force_and_torque(wind_vel)
+        rel_net_force, net_torque = self.__compute_net_force_and_torque(wind_vel)
         return self.__kinematics_computation.step(rel_net_force, net_torque)
 
     def __compute_net_force_and_torque(self, wind_vel: NDArray) -> Tuple[NDArray, NDArray]:
