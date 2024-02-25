@@ -34,7 +34,6 @@ class TestWindSensor:
         sample_mean = np.mean(reading, axis=0)
         sample_cov = np.cov(reading, rowvar=False)
 
-
         assert np.allclose(sample_mean, mean, atol=0.2)
         assert np.allclose(sample_cov, cov, atol=0.2)
 
@@ -68,4 +67,3 @@ class TestWindSensor:
             ws.update(wind=np.array([i + 1, i + 1]))
             wind = ws.read("wind")
             assert np.all(wind == [i, i])
-

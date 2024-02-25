@@ -11,6 +11,7 @@ from boat_simulator.common.generators import (
     GaussianGenerator,
 )
 
+
 class Sensor:
     """
 
@@ -106,7 +107,6 @@ class WindSensor(Sensor):
         self.wind_queue: deque = deque()
         self.wind_noisemaker = MVGaussianGenerator(mean=np.array([0, 0]), cov=np.eye(2))
 
-
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
         # TODO: Ensure attribute value and noisemakers are using the same value shape.
@@ -128,6 +128,7 @@ class WindSensor(Sensor):
             self._wind = self.wind_queue.popleft()
         else:
             self.wind_queue_next = True
+
 
 class GPS(Sensor):
     """
@@ -172,7 +173,6 @@ class GPS(Sensor):
         self.speed_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
         self.heading_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
 
-
     @property  # type: ignore
     def lat_lon(self) -> NDArray:
         return (
@@ -191,7 +191,6 @@ class GPS(Sensor):
             self._lat_lon = update_value
         else:
             self.lat_lon_queue_next = True
-
 
     @property  # type: ignore
     def speed(self) -> Scalar:
@@ -228,4 +227,3 @@ class GPS(Sensor):
             self._heading = self.heading_queue.popleft()
         else:
             self.heading_queue_next = True
-

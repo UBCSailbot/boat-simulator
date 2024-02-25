@@ -91,9 +91,8 @@ class TestGPS:
         # Initialized data is read without delay
         gps = GPS(lat_lon=lat_lon, speed=speed0, heading=heading, enable_delay=True)
         assert gps.read("speed") == speed0
-        
+
         NUM_UPDATES = 3
         for i in range(NUM_UPDATES):
             gps.update(speed=(i + 1))
             assert gps.read("speed") == i
-
