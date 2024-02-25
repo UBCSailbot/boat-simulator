@@ -131,6 +131,10 @@ class ConversionFactors(Enum):
     km_to_nautical_mi = nautical_mi_to_km.inverse()
 
     # Time
+    
+    sec_to_ms = ConversionFactor(factor=1000)
+    ms_to_sec = sec_to_ms.inverse()
+    
     min_to_sec = ConversionFactor(factor=60)
     sec_to_min = min_to_sec.inverse()
 
