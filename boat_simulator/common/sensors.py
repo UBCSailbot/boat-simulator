@@ -177,7 +177,7 @@ class GPS(Sensor):
     def lat_lon(self) -> NDArray:
         return (
             self._lat_lon + self.lat_lon_noisemaker.next()
-            if self.enable_nois
+            if self.enable_noise
             else self._lat_lon
         )
 
