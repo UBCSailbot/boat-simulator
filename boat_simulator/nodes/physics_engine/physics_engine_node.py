@@ -17,6 +17,7 @@ from custom_interfaces.action._sim_sail_trim_tab_actuation import (
 from custom_interfaces.msg import (
     GPS,
     DesiredHeading,
+    SailCmd,
     SimWorldState,
     WindSensor,
     WindSensors,
@@ -174,12 +175,19 @@ class PhysicsEngineNode(Node):
         topics for further usage in this node. Data is pulled from subscriptions periodically via
         callbacks, which are registered upon subscription initialization.
         """
-        # TODO Add subscription to controller when implemented
+        # TODO Subscribe to CAN/Sim interface output to replace the current subscriptions
         self.get_logger().debug("Initializing subscriptions...")
         self.__desired_heading_sub = self.create_subscription(
             msg_type=DesiredHeading,
             topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.DESIRED_HEADING,
             callback=self.__desired_heading_sub_callback,
+            qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
+            callback_group=self.sub_callback_group,
+        )
+        self.__sail_trim_tab_angle_sub = self.create_subscription(
+            msg_type=SailCmd,
+            topic=Constants.PHYSICS_ENGINE_SUBSCRIPTIONS.SAIL_TRIM_TAB_ANGLE,
+            callback=self.__sail_trim_tab_angle_sub_callback,
             qos_profile=self.get_parameter("qos_depth").get_parameter_value().integer_value,
             callback_group=self.sub_callback_group,
         )
@@ -359,6 +367,20 @@ class PhysicsEngineNode(Node):
         )
         self.__desired_heading = msg
 
+    def __sail_trim_tab_angle_sub_callback(self, msg: SailCmd):
+        """Stores the latest trim tab angle from the controller.
+
+        Args:
+            msg (SailCmd): The desired trim tab angle.
+        """
+        self.get_logger().info(
+            f"Received data from {self.sail_trim_tab_angle_sub.topic}",
+            throttle_duration_sec=self.get_parameter("info_log_throttle_period_sec")
+            .get_parameter_value()
+            .double_value,
+        )
+        self.__sail_trim_tab_angle = msg.trim_tab_angle_degrees
+
     # RUDDER ACTUATION ACTION CLIENT CALLBACKS
     @require_all_subs_active
     def __rudder_action_send_goal(self):
@@ -448,10 +470,9 @@ class PhysicsEngineNode(Node):
         """
         self.get_logger().debug("Initiating goal request for sail actuation action")
 
-        # TODO Get desired angular position from sail controller when implemented
         # Create the goal message
         goal_msg = SimSailTrimTabActuation.Goal()
-        goal_msg.desired_angular_position = 0.0
+        goal_msg.desired_angular_position = self.sail_trim_tab_angle
 
         action_send_goal_timeout_sec = (
             self.get_parameter("action_send_goal_timeout_sec").get_parameter_value().double_value
@@ -576,6 +597,10 @@ class PhysicsEngineNode(Node):
     @property
     def sail_trim_tab_angle(self) -> Scalar:
         return self.__sail_trim_tab_angle
+
+    @property
+    def sail_trim_tab_angle_sub(self) -> Subscription:
+        return self.__sail_trim_tab_angle_sub
 
     @property
     def rudder_actuation_action_client(self) -> ActionClient:

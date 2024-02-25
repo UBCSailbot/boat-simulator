@@ -55,6 +55,7 @@ class TestGPS:
             [speed, heading, lat_lon],
         ):
             sample_mean = np.mean(reading, axis=0)
+
             assert np.allclose(sample_mean, mean + init_data, atol=0.1)
 
     def test_gps_sensor_update(self):
@@ -95,3 +96,4 @@ class TestGPS:
         for i in range(NUM_UPDATES):
             gps.update(speed=(i + 1))
             assert gps.read("speed") == i
+
