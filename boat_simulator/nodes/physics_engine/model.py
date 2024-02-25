@@ -50,7 +50,7 @@ class BoatState:
         return self.__kinematics_computation.step(rel_net_force, net_torque)
 
     def __compute_net_force_and_torque(self, rel_wind_vel: NDArray) -> Tuple[NDArray, NDArray]:
-        """Calculates the net force and net torque acting on the boat due to the wind.
+        """Calculates the net force and net torque acting on the boat caused by the wind and water.
 
         Args:
             rel_wind_vel (NDArray): The velocity of the true wind in the relative reference frame,
