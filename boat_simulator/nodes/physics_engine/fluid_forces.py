@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.patches as patches
-from typing import TypeVar
+from typing import TypeVar, Union
+Scalar = Union[int, float]
 
-from boat_simulator.common.utils import Scalar
+# from boat_simulator.common.utils import Scalar
 
 
 class MediumForceComputation:
@@ -84,12 +85,13 @@ class MediumForceComputation:
 
         attack_angle = self.calculate_attack_angle(apparent_velocity, orientation)
         lift_coefficient, drag_coefficient, area = self.interpolate(attack_angle)
+        velocity_magnitude = np.linalg.norm(apparent_velocity)
         lift_force_magnitude = (
             0.5
             * self.__fluid_density
             * lift_coefficient
             * area
-            * (np.linalg.norm(apparent_velocity) ** 2)
+            * (velocity_magnitude ** 2)
         )
 
         drag_force_magnitude = (
@@ -97,13 +99,13 @@ class MediumForceComputation:
             * self.__fluid_density
             * drag_coefficient
             * area
-            * (np.linalg.norm(apparent_velocity) ** 2)
+            * (velocity_magnitude ** 2)
         )
 
         # Rotate the lift and drag forces by 90 degrees to obtain the lift and drag forces
         # Rotate counter clockwise in 1st and 3rd quadrant, and clockwise in 2nd and 4th quadrant
         # 0 otherwise
-        drag_force_direction = (apparent_velocity) / np.linalg.norm(apparent_velocity)
+        drag_force_direction = (apparent_velocity) / velocity_magnitude
         if (drag_force_direction[0] > 0 and drag_force_direction[1] > 0) or (
             drag_force_direction[0] < 0 and drag_force_direction[1] < 0
         ):
@@ -181,7 +183,7 @@ class MediumForceComputation:
     ):
         """Visualizes the sailboat, apparent velocity, lift force, and drag force."""
         fig, ax = plt.subplots()
-
+        attack_angle = self.calculate_attack_angle(apparent_velocity, orientation)
         # Normalize forces for visualization
         norm_apparent_velocity = apparent_velocity / np.linalg.norm(apparent_velocity)
         norm_lift_force = lift_force / np.linalg.norm(lift_force)
@@ -235,7 +237,7 @@ class MediumForceComputation:
 
         ax.axis("equal")
         ax.legend()
-        plt.title("Forces Acting on Sailboat")
+        plt.title("Forces Acting on Sailboat for Attack Angle: " + str(round(attack_angle)))
         plt.xlabel("X-axis")
         plt.ylabel("Y-axis")
         plt.grid(True)
