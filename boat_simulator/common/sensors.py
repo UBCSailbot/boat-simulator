@@ -34,8 +34,8 @@ class Sensor:
         """
 
         Args:
-            enable_delay (bool, optional): _description_. Defaults to False.
-            enable_noise (bool, optional): _description_. Defaults to False.
+            enable_noise (bool): Enables noise for fields. False by default.
+            enable_delay (bool): Enables delay for fields. False by default.
         """
 
         self.enable_delay = enable_delay
