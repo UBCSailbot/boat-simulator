@@ -103,8 +103,10 @@ class WindSensor(Sensor):
         super().__init__(enable_noise=enable_noise, enable_delay=enable_delay)
         self._wind = wind
 
+        # TODO: Refactor the initialization of data fields: Warning this is not easy!
+
         self.wind_queue_next = False
-        self.wind_queue: deque = deque()
+        self.wind_next_value = wind
         self.wind_noisemaker = MVGaussianGenerator(mean=np.array([0, 0]), cov=np.eye(2))
 
     @property  # type: ignore
@@ -122,12 +124,16 @@ class WindSensor(Sensor):
     @wind.setter
     def wind(self, wind: ScalarOrArray):
 
-        self.wind_queue.append(wind)
+        if not self.enable_delay:
+            self._wind = wind
+            return
 
-        if self.wind_queue_next or not self.enable_delay:
-            self._wind = self.wind_queue.popleft()
+        if self.wind_queue_next:
+            self._wind = self.wind_next_value
         else:
             self.wind_queue_next = True
+
+        self.wind_next_value = wind
 
 
 class GPS(Sensor):
@@ -159,15 +165,17 @@ class GPS(Sensor):
         self._speed = speed
         self._heading = heading
 
+        # TODO: Refactor the initialization of data fields. Warning: this is not easy!
+
         # Delay Controls
-        self.lat_lon_queue_next = False
-        self.lat_lon_queue: deque = deque()
+        self.lat_lon_queue_next: bool = False
+        self.lat_lon_next_value: NDArray = lat_lon
 
-        self.speed_queue_next = False
-        self.speed_queue: deque = deque()
+        self.speed_queue_next: bool = False
+        self.speed_next_value: Scalar = speed
 
-        self.heading_queue_next = False
-        self.heading_queue: deque = deque()
+        self.heading_queue_next: bool = False
+        self.heading_next_value: Scalar = heading
 
         self.lat_lon_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
         self.speed_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
@@ -184,13 +192,16 @@ class GPS(Sensor):
     @lat_lon.setter
     def lat_lon(self, lat_lon: NDArray):
 
-        self.lat_lon_queue.append(lat_lon)
+        if not self.enable_delay:
+            self._lat_lon = lat_lon
+            return
 
-        if self.lat_lon_queue_next or not self.enable_delay:
-            update_value = self.lat_lon_queue.popleft()
-            self._lat_lon = update_value
+        if self.lat_lon_queue_next:
+            self._lat_lon = self.lat_lon_next_value
         else:
             self.lat_lon_queue_next = True
+
+        self.lat_lon_next_value = lat_lon
 
     @property  # type: ignore
     def speed(self) -> Scalar:
@@ -203,12 +214,16 @@ class GPS(Sensor):
     @speed.setter
     def speed(self, speed: Scalar):
 
-        self.speed_queue.append(speed)
+        if not self.enable_delay:
+            self._speed = speed
+            return
 
-        if self.speed_queue_next or not self.enable_delay:
-            self._speed = self.speed_queue.popleft()
+        if self.speed_queue_next:
+            self._speed = self.speed_next_value
         else:
             self.speed_queue_next = True
+
+        self.speed_next_value = speed
 
     @property  # type: ignore
     def heading(self) -> Scalar:
@@ -221,9 +236,13 @@ class GPS(Sensor):
     @heading.setter
     def heading(self, heading: Scalar):
 
-        self.heading_queue.append(heading)
+        if not self.enable_delay:
+            self._heading = heading
+            return
 
-        if self.heading_queue_next or not self.enable_delay:
-            self._heading = self.heading_queue.popleft()
+        if self.heading_queue_next:
+            self._heading = self.heading_next_value
         else:
             self.heading_queue_next = True
+
+        self.heading_next_value = heading
