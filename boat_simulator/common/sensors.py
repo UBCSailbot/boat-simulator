@@ -1,6 +1,5 @@
 from typing import Any
 from numpy.typing import NDArray
-from collections import deque
 import numpy as np
 
 
