@@ -96,7 +96,7 @@ class WindSensor(Sensor):
     def __init__(
         self,
         wind: ScalarOrArray,
-        stdev: List[float] = [1.0, 1.0],
+        stdev: List[Scalar] = [1.0, 1.0],
         enable_noise: bool = False,
         enable_delay: bool = False,
     ) -> None:
