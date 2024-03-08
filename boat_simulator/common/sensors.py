@@ -1,5 +1,6 @@
 from typing import Any
 from numpy.typing import NDArray
+from typing import List
 import numpy as np
 
 
@@ -15,7 +16,6 @@ class Sensor:
     """
 
     Interface for sensors in the Boat Simulation.
-
 
     Data delay and noise models are supported.
 
@@ -96,17 +96,21 @@ class WindSensor(Sensor):
     def __init__(
         self,
         wind: ScalarOrArray,
+        stdev: List[float] = [1.0, 1.0],
         enable_noise: bool = False,
         enable_delay: bool = False,
     ) -> None:
         super().__init__(enable_noise=enable_noise, enable_delay=enable_delay)
         self._wind = wind
 
-        # TODO: Refactor the initialization of data fields: Warning this is not easy!
+        # TODO: Refactor the initialization of data fields and their respective delay controls.
+        # Warning: this is not easy!
 
-        self.wind_queue_next = False
-        self.wind_next_value = wind
-        self.wind_noisemaker = MVGaussianGenerator(mean=np.array([0, 0]), cov=np.eye(2))
+        self.wind_queue_next: bool = False
+        self.wind_next_value: ScalarOrArray = wind
+        self.wind_noisemaker: MVGaussianGenerator = MVGaussianGenerator(
+            mean=np.array([0, 0]), cov=np.diag(np.power(stdev, 2))
+        )
 
     @property  # type: ignore
     def wind(self) -> ScalarOrArray:
@@ -156,6 +160,7 @@ class GPS(Sensor):
         lat_lon: NDArray,
         speed: Scalar,
         heading: Scalar,
+        stdev: Scalar = 1,
         enable_noise: bool = False,
         enable_delay: bool = False,
     ):
@@ -164,7 +169,8 @@ class GPS(Sensor):
         self._speed = speed
         self._heading = heading
 
-        # TODO: Refactor the initialization of data fields. Warning: this is not easy!
+        # TODO: Refactor the initialization of data fields and their respective delay controls.
+        # Warning: this is not easy!
 
         # Delay Controls
         self.lat_lon_queue_next: bool = False
@@ -176,9 +182,15 @@ class GPS(Sensor):
         self.heading_queue_next: bool = False
         self.heading_next_value: Scalar = heading
 
-        self.lat_lon_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
-        self.speed_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
-        self.heading_noisemaker: GaussianGenerator = GaussianGenerator(mean=0, stdev=1)
+        self.lat_lon_noisemaker: GaussianGenerator = GaussianGenerator(
+            mean=0, stdev=stdev
+        )
+        self.speed_noisemaker: GaussianGenerator = GaussianGenerator(
+            mean=0, stdev=stdev
+        )
+        self.heading_noisemaker: GaussianGenerator = GaussianGenerator(
+            mean=0, stdev=stdev
+        )
 
     @property  # type: ignore
     def lat_lon(self) -> NDArray:
