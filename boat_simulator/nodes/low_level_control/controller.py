@@ -54,6 +54,7 @@ class ActuatorController(ABC):
         self.time_step = time_step
         self.kp = kp
         self.cp = cp
+        self.max_angle_range = max_angle_range
         self.prev_control: List[Scalar] = list()
         self.time_series: List[Scalar] = list()
 
@@ -180,12 +181,13 @@ class RudderController(ActuatorController):
         return np.rad2deg(rudder_change)
 
     def compute_setpoint(self) -> Scalar:
-        """Calculates the rudder setpoint angle
+        """Calculates the rudder setpoint angle. Only called at the very beginning once
+        to determine the setpoint angle
 
         Returns:
             The rudder setpoint angle in degrees
         """
-        return self.prev_control[-1] + self.compute_feedback_angle
+        return self.prev_control[0] + self.compute_feedback_angle()
 
     def update_state(self, speed=2) -> None:  # default speed set to 2 degrees / sec
         """Updates the rudder angle iteratively towards the target rudder setpoint
@@ -251,6 +253,7 @@ class SailController(ActuatorController):
         self.cp = cp
         self.setpoint = 0
         self.max_angle_range = max_angle_range  # convert to radians
+        self.running_error = 0
 
     def compute_feedback_angle(self, target_angle):
         """Computes the feedback angle between setpoint and current sail angles
@@ -260,15 +263,31 @@ class SailController(ActuatorController):
         """
         return target_angle - self.current_control_ang
 
-    def update_state(self, speed=1.5):  # default speed set to 1 degree / sec
+    def update_state(self, speed=1):  # default speed set to 1 degree / sec
         """Updates the sail angle iteratively towards the target sail setpoint
 
         Args:
             `speed` (Scalar): Speed of sail angle change in degrees per second
         """
-        next_control = self.current_control_ang + (speed * self.time_step)
-        if next_control > self.max_angle_range[0] or next_control < self.max_angle_range[1]:
-            next_control = self.current_heading
+        change = speed * self.time_step
+        if self.running_error > change:
+            next_control = self.current_control_ang + change
+            if next_control > self.max_angle_range[0]:
+                next_control = self.max_angle_range[0]
+            elif next_control < self.max_angle_range[1]:
+                next_control = self.max_angle_range[1]
+            else:
+                next_control = next_control
+            self.running_error -= change
+            self.current_control_ang = next_control
+
         else:
-            next_control = next_control
-        self.current_control_ang = next_control
+            next_control = self.current_control_ang + self.running_error
+            if next_control > self.max_angle_range[0]:
+                next_control = self.max_angle_range[0]
+            elif next_control < self.max_angle_range[1]:
+                next_control = self.max_angle_range[1]
+            else:
+                next_control = next_control
+            self.running_error = 0
+            self.current_control_ang = next_control
