@@ -13,9 +13,10 @@ from boat_simulator.nodes.low_level_control.controller import RudderController
 
 class TestRudderController:
     @pytest.mark.parametrize(
-        "current_heading, desired_heading, current_control_ang,time_step, kp, cp, max_angle_range",
+        "current_heading, desired_heading, current_control_ang, \
+            time_step, kp, cp, max_angle_range, rudder_speed",
         [
-            (60, 45, 10, 0.5, 0.7, 0.34, (45, -45)),
+            (60, 45, 10, 0.5, 0.7, 0.34, (45, -45), 2),
         ],
     )
     def test_compute_error(
@@ -26,17 +27,19 @@ class TestRudderController:
         time_step: Scalar,
         kp: Scalar,
         cp: Scalar,
-        max_angle_range=(45, -45),
+        max_angle_range: tuple,
+        rudder_speed: Scalar,
     ):
 
         rudder_controller = RudderController(
-            current_heading=current_heading,
-            desired_heading=desired_heading,
-            current_control_ang=current_control_ang,
-            time_step=time_step,
-            kp=kp,
-            cp=cp,
-            max_angle_range=max_angle_range,
+            current_heading,
+            desired_heading,
+            current_control_ang,
+            time_step,
+            kp,
+            cp,
+            max_angle_range,
+            rudder_speed,
         )
         error = rudder_controller.compute_error(desired_heading, current_heading)
         expected_error = atan2(
@@ -58,17 +61,19 @@ class TestRudderController:
         time_step: Scalar,
         kp: Scalar,
         cp: Scalar,
-        max_angle_range=(45, -45),
+        max_angle_range: tuple,
+        rudder_speed: Scalar,
     ):
 
         rudder_controller = RudderController(
-            current_heading=current_heading,
-            desired_heading=desired_heading,
-            current_control_ang=current_control_ang,
-            time_step=time_step,
-            kp=kp,
-            cp=cp,
-            max_angle_range=max_angle_range,
+            current_heading,
+            desired_heading,
+            current_control_ang,
+            time_step,
+            kp,
+            cp,
+            max_angle_range,
+            rudder_speed,
         )
         feedback_angle = rudder_controller.compute_feedback_angle()
         error = rudder_controller.compute_error(desired_heading, current_heading)
@@ -89,21 +94,23 @@ class TestRudderController:
         time_step: Scalar,
         kp: Scalar,
         cp: Scalar,
-        max_angle_range=(45, -45),
+        max_angle_range: tuple,
+        rudder_speed: Scalar,
     ):
 
         rudder_controller = RudderController(
-            current_heading=current_heading,
-            desired_heading=desired_heading,
-            current_control_ang=current_control_ang,
-            time_step=time_step,
-            kp=kp,
-            cp=cp,
-            max_angle_range=max_angle_range,
+            current_heading,
+            desired_heading,
+            current_control_ang,
+            time_step,
+            kp,
+            cp,
+            max_angle_range,
+            rudder_speed,
         )
         setpoint = rudder_controller.compute_setpoint()
         expected_setpoint = (
-            rudder_controller.prev_control[0] + rudder_controller.compute_feedback_angle()
+            rudder_controller.current_control_ang + rudder_controller.compute_feedback_angle()
         )
         assert np.equal(setpoint, expected_setpoint)
 
@@ -121,17 +128,19 @@ class TestRudderController:
         time_step: Scalar,
         kp: Scalar,
         cp: Scalar,
-        max_angle_range=(45, -45),
+        max_angle_range: tuple,
+        rudder_speed: Scalar,
     ):
 
         rudder_controller = RudderController(
-            current_heading=current_heading,
-            desired_heading=desired_heading,
-            current_control_ang=current_control_ang,
-            time_step=time_step,
-            kp=kp,
-            cp=cp,
-            max_angle_range=max_angle_range,
+            current_heading,
+            desired_heading,
+            current_control_ang,
+            time_step,
+            kp,
+            cp,
+            max_angle_range,
+            rudder_speed,
         )
-        rudder_controller.update_state(2)
+        rudder_controller.update_state()
         assert np.equal(rudder_controller.current_control_ang, 12)
