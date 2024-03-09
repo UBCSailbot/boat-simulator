@@ -8,10 +8,7 @@ import pytest
 from boat_simulator.common.types import Scalar
 
 # from boat_simulator.common.utils import bound_to_180
-from boat_simulator.nodes.low_level_control.controller import (
-    ActuatorController,
-    RudderController,
-)
+from boat_simulator.nodes.low_level_control.controller import RudderController
 
 
 class TestRudderController:
@@ -105,7 +102,9 @@ class TestRudderController:
             max_angle_range=max_angle_range,
         )
         setpoint = rudder_controller.compute_setpoint()
-        expected_setpoint = rudder_controller.prev_control[0] + rudder_controller.compute_feedback_angle
+        expected_setpoint = (
+            rudder_controller.prev_control[0] + rudder_controller.compute_feedback_angle()
+        )
         assert np.equal(setpoint, expected_setpoint)
 
     @pytest.mark.parametrize(
@@ -134,5 +133,5 @@ class TestRudderController:
             cp=cp,
             max_angle_range=max_angle_range,
         )
-        new_rud_state = rudder_controller.update_state(2)
-        assert np.equal(new_rud_state, 12)
+        rudder_controller.update_state(2)
+        assert np.equal(rudder_controller.current_control_ang, 12)

@@ -58,8 +58,8 @@ class ActuatorController(ABC):
         self.prev_control: List[Scalar] = list()
         self.time_series: List[Scalar] = list()
 
-        self.time_series.append[0]  # append initial starting time 0
-        self.prev_control.append[self.current_control_ang]  # append starting control angle
+        self.time_series.append(0)  # append initial starting time 0
+        self.prev_control.append(self.current_control_ang)  # append starting control angle
 
     def append_heading(self, past_heading: Scalar) -> None:
         """Appends the previous heading to heading list and updates the current
@@ -84,7 +84,7 @@ class ActuatorController(ABC):
         self.prev_control.clear()
         self.time_series.clear()
 
-    def get_heading(self) -> None:
+    def get_heading(self) -> tuple:
         """Returns the most recent heading and current running time"""
         return (self.prev_control[-1], self.time_series[-1])
 
@@ -98,7 +98,7 @@ class ActuatorController(ABC):
         """
 
     @abstractmethod
-    def compute_feedback_angle(self) -> None:
+    def compute_feedback_angle(self) -> Scalar:
         """Computes the corresponding feedback based on error and desired heading"""
         pass
 
@@ -117,7 +117,7 @@ class RudderController(ActuatorController):
         time_step: Scalar,
         kp: Scalar,
         cp: Scalar,
-        max_angle_range=(45, -45),
+        max_angle_range: tuple,
     ):
         """Initializes the class attributes.
 
