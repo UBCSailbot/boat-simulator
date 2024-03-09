@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 from boat_simulator.common.types import Scalar
-
-# from boat_simulator.common.utils import bound_to_180
+from boat_simulator.common.utils import bound_to_180
 from boat_simulator.nodes.low_level_control.controller import RudderController
 
 
@@ -16,6 +15,10 @@ class TestRudderController:
         "current_heading, desired_heading, current_control_ang, \
             time_step, kp, cp, max_angle_range, rudder_speed",
         [
+            (60, 45, 10, 0.5, 0.7, 0.34, (45, -45), 2),
+            (180, 10, 60, 0.5, 0.7, 0.34, (45, -45), 1.5),
+            (60, 45, 10, 0.5, 0.7, 0.34, (45, -45), 2),
+            (60, 45, 10, 0.5, 0.7, 0.34, (45, -45), 2),
             (60, 45, 10, 0.5, 0.7, 0.34, (45, -45), 2),
         ],
     )
@@ -42,9 +45,9 @@ class TestRudderController:
             rudder_speed,
         )
         error = rudder_controller.compute_error(desired_heading, current_heading)
-        expected_error = atan2(
-            sin(desired_heading - current_heading), cos(desired_heading - current_heading)
-        )
+        desired_rad = np.deg2rad(bound_to_180(desired_heading))
+        current_rad = np.deg2rad(bound_to_180(current_heading))
+        expected_error = atan2(sin(desired_rad - current_rad), cos(desired_rad - current_rad))
         assert np.equal(expected_error, error)
 
     @pytest.mark.parametrize(
